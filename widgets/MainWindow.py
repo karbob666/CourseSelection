@@ -68,22 +68,34 @@ class MainWindow(QWidget):
             self.thread = MsSQLThread(self.connection, sql)
             self.thread.data_signal.connect(self.slot_student_login_data)
             self.thread.start()
-        elif self.login.rb_teacher.isChecked():
-            self.teacher.show()
+            return
+
+        if self.login.rb_teacher.isChecked():
+            sql = f"SELECT * FROM Teacher WHERE 工号='{user_name}' AND 密码='{password}'"
+            self.thread = MsSQLThread(self.connection, sql)
+            self.thread.data_signal.connect(self.slot_teacher_login_data)
+            self.thread.start()
+            return
+
+        if user_name == "admin" and password == "123123":
+            self.admin.show()
             self.login.hide()
-        else:
-            if user_name == "admin" and password == "123123":
-                self.admin.show()
-                self.login.hide()
 
     def slot_student_login_data(self, data: Dict[str, Any]) -> None:
-        if data is None:
+        if not data:
             print("密码错误")
             print(data)
         else:
             print("密码正确")
             self.login.hide()
             self.student.show()
+
+    def slot_teacher_login_data(self, data: Dict[str, Any]) -> None:
+        if not data:
+            print("密码错误")
+        else:
+            self.login.hide()
+            self.teacher.show()
 
     def slot_student_fetchall_data(self, data: List[Dict[str, Any]]) -> None:
         """
@@ -100,7 +112,7 @@ class MainWindow(QWidget):
         学生系统
         点击课程信息按钮
         """
-        sql = ""
+        sql = "SELECT * FROM Course_info"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_student_fetchall_data)
 
