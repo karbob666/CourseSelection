@@ -112,7 +112,7 @@ class MainWindow(QWidget):
         self.student.table.setHorizontalHeaderLabels(header)
         for row, course_info in enumerate(data):
             for column, item in enumerate(course_info.values()):
-                self.student.table.setItem(row, column, QTableWidgetItem(str(item)))
+                self.student.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
 
     def slot_btn_student_course_info_click(self) -> None:
         """
