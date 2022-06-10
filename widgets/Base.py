@@ -11,7 +11,7 @@ import multiprocessing
 from pymssql import Connection, Cursor, Error
 from typing import Any
 from PyQt5.QtGui import QColor
-from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable
+from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject
 from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
@@ -115,13 +115,19 @@ class Sidebar(QWidget):
 
 class MsConnectThread(QRunnable):
 
-    connection_signal = pyqtSignal(Connection)
+    class Signals(QObject):
+        connection_signal = pyqtSignal(Connection)
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, signals=Signals(), *args, **kwargs) -> None:
         super(MsConnectThread, self).__init__()
         self.args = args
         self.kwargs = kwargs
         self.setAutoDelete(True)
+        try:
+            signals.connection_signal.disconnect()
+        except Exception:
+            pass
+        self.connection_signal = signals.connection_signal
 
     def run(self) -> None:
         """
@@ -136,13 +142,19 @@ class MsConnectThread(QRunnable):
 
 class MsSQLThread(QRunnable):
 
-    data_signal = pyqtSignal(object)
+    class Signals(QObject):
+        data_signal = pyqtSignal(object)
 
-    def __init__(self, connection: Connection, sql: str) -> None:
+    def __init__(self, connection: Connection, sql: str, signals=Signals()) -> None:
         super(MsSQLThread, self).__init__()
         self.connection = connection
         self.sql = sql
         self.setAutoDelete(True)
+        try:
+            signals.data_signal.disconnect()
+        except Exception:
+            pass
+        self.data_signal = signals.data_signal
 
     def run(self) -> None:
         """
