@@ -148,7 +148,8 @@ class MsSQLThread(QThread):
         cursor: Cursor = self.connection.cursor()
         try:
             if "SELECT" == self.sql[:6].upper():
-                data = cursor.execute(self.sql).fetchall()
+                cursor.execute(self.sql)
+                data = cursor.fetchall()
                 self.data_signal.emit(data)
             elif "INSERT" == self.sql[:6].upper():
                 cursor.execute(self.sql)
