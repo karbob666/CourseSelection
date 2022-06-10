@@ -31,6 +31,7 @@ class MainWindow(QWidget):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.init_window()
         self.init_widgets()
+        self.connect_database()
         self.bind_slot()
 
     def init_window(self) -> None:
