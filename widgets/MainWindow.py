@@ -15,7 +15,7 @@ from widgets.Student import Student
 from widgets.Teacher import Teacher
 from widgets.Admin import Admin
 from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QMessageBox
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QColor
 
@@ -81,19 +81,21 @@ class MainWindow(QWidget):
         if user_name == "admin" and password == "123123":
             self.admin.show()
             self.login.hide()
+        else:
+            QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
 
     def slot_student_login_data(self, data: Dict[str, Any]) -> None:
         if not data:
-            print("密码错误")
-            print(data)
+            self.student.user_data = data
+            QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
         else:
-            print("密码正确")
             self.login.hide()
             self.student.show()
 
     def slot_teacher_login_data(self, data: Dict[str, Any]) -> None:
         if not data:
-            print("密码错误")
+            self.teacher.user_data = data
+            QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
         else:
             self.login.hide()
             self.teacher.show()
