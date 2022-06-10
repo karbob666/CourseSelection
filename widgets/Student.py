@@ -7,6 +7,7 @@
 ...@date: 2022-06-09
 """
 from config import config
+from typing import Dict, Any
 from PyQt5.QtWidgets import QWidget, QLabel, QFrame
 from PyQt5.QtGui import QPaintEvent, QPainter, QPixmap, QColor
 from PyQt5.QtCore import Qt, QSize, QRect
@@ -22,6 +23,7 @@ class Student(QWidget):
     btn_cancel: Button
     btn_user_info: Button
     table: Table
+    user_data: Dict[str, Any]
 
     def __init__(self, *args, **kwargs) -> None:
         super(Student, self).__init__(*args, **kwargs)

@@ -7,6 +7,7 @@
 ...@date: 2022-06-09
 """
 from config import config
+from typing import Dict, Any
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QColor
@@ -19,6 +20,7 @@ class Teacher(QWidget):
     btn_teach_info: Button
     btn_student_info: Button
     btn_user_info: Button
+    user_data: Dict[str, Any]
 
     def __init__(self, *args, **kwargs) -> None:
         super(Teacher, self).__init__(*args, **kwargs)
