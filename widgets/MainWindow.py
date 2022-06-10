@@ -14,7 +14,7 @@ from widgets.Login import Login
 from widgets.Student import Student
 from widgets.Teacher import Teacher
 from widgets.Admin import Admin
-from widgets.Base import MsConnectThread, MsSQLThread
+from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QColor
@@ -27,13 +27,14 @@ class MainWindow(QWidget):
     teacher: Teacher
     admin: Admin
     connection: Connection
-    thread: MsSQLThread
+    thread_pool: ThreadPool
 
     def __init__(self, *args, **kwargs) -> None:
         super(MainWindow, self).__init__(*args, **kwargs)
         self.init_window()
         self.init_widgets()
         self.bind_slot()
+        self.thread_pool = ThreadPool()
         self.connection = pymssql.connect(**config.DATABASE_CONNECTION)
 
     def init_window(self) -> None:
@@ -65,16 +66,16 @@ class MainWindow(QWidget):
         password = self.login.input_password.text()
         if self.login.rb_student.isChecked():
             sql = f"SELECT * FROM Student WHERE 学号='{user_name}' AND 密码='{password}'"
-            self.thread = MsSQLThread(self.connection, sql)
-            self.thread.data_signal.connect(self.slot_student_login_data)
-            self.thread.start()
+            thread = MsSQLThread(self.connection, sql)
+            thread.data_signal.connect(self.slot_student_login_data)
+            self.thread_pool.start(thread)
             return
 
         if self.login.rb_teacher.isChecked():
             sql = f"SELECT * FROM Teacher WHERE 工号='{user_name}' AND 密码='{password}'"
-            self.thread = MsSQLThread(self.connection, sql)
-            self.thread.data_signal.connect(self.slot_teacher_login_data)
-            self.thread.start()
+            thread = MsSQLThread(self.connection, sql)
+            thread.data_signal.connect(self.slot_teacher_login_data)
+            self.thread_pool.start(thread)
             return
 
         if user_name == "admin" and password == "123123":
@@ -115,6 +116,7 @@ class MainWindow(QWidget):
         sql = "SELECT * FROM Course_info"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_student_fetchall_data)
+        self.thread_pool.start(thread)
 
     def bind_slot(self) -> None:
         """

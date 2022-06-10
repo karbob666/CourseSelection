@@ -172,5 +172,5 @@ class ThreadPool(QThreadPool):
 
     def __init__(self, max_count=multiprocessing.cpu_count()) -> None:
         super(ThreadPool, self).__init__()
-        self.setMaxThreadCount(maxThreadCount=max_count)
+        self.setMaxThreadCount(max_count)
 
