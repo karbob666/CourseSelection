@@ -130,7 +130,7 @@ class MainWindow(QWidget):
         点击已选课程按钮
         """
         user_id = self.student.user_data["学号"]
-        sql = f"SELECT * FROM Course_info WHERE 学号='{user_id}' AND 已选课程 NOT NULL"
+        sql = f"SELECT * FROM Course_choosen WHERE 学号='{user_id}'"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_student_fetchall_data)
         self.thread_pool.start(thread)
