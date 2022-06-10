@@ -27,6 +27,7 @@ class MainWindow(QWidget):
     teacher: Teacher
     admin: Admin
     connection: Connection
+    thread: MsSQLThread
 
     def __init__(self, *args, **kwargs) -> None:
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -64,9 +65,9 @@ class MainWindow(QWidget):
         password = self.login.input_password.text()
         if self.login.rb_student.isChecked():
             sql = f"SELECT * FROM Student WHERE 学号='{user_name}' AND 密码='{password}'"
-            thread = MsSQLThread(self.connection, sql)
-            thread.data_signal.connect(self.slot_student_login_data)
-            thread.start()
+            self.thread = MsSQLThread(self.connection, sql)
+            self.thread.data_signal.connect(self.slot_student_login_data)
+            self.thread.start()
         elif self.login.rb_teacher.isChecked():
             self.teacher.show()
             self.login.hide()
