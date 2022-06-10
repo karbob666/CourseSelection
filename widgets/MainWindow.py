@@ -15,7 +15,7 @@ from widgets.Student import Student
 from widgets.Teacher import Teacher
 from widgets.Admin import Admin
 from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool
-from PyQt5.QtWidgets import QWidget, QMessageBox
+from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QColor
 
@@ -106,9 +106,13 @@ class MainWindow(QWidget):
         查询所有数据信号槽
         """
         header = data[0].keys()
+        self.student.table.setRowCount(len(data))
         self.student.table.setColumnCount(len(header))
         self.student.table.horizontalHeader().setDefaultSectionSize(self.student.table.width() // len(header))
         self.student.table.setHorizontalHeaderLabels(header)
+        for row, course_info in enumerate(data):
+            for column, item in enumerate(course_info.values()):
+                self.student.table.setItem(row, column, QTableWidgetItem(str(item)))
 
     def slot_btn_student_course_info_click(self) -> None:
         """
@@ -125,3 +129,4 @@ class MainWindow(QWidget):
         绑定信号槽
         """
         self.login.btn_login.clicked.connect(self.slot_btn_login_click)
+        self.student.btn_course_info.connect(self.slot_btn_student_course_info_click)
