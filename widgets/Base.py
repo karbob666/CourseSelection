@@ -7,10 +7,11 @@
 ...@date: 2022-06-08
 """
 import pymssql
+import multiprocessing
 from pymssql import Connection, Cursor, Error
 from typing import Any
 from PyQt5.QtGui import QColor
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable
 from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
@@ -112,7 +113,7 @@ class Sidebar(QWidget):
         self.layout.addWidget(widget, 1, Qt.AlignCenter)
 
 
-class MsConnectThread(QThread):
+class MsConnectThread(QRunnable):
 
     connection_signal = pyqtSignal(Connection)
 
@@ -120,6 +121,7 @@ class MsConnectThread(QThread):
         super(MsConnectThread, self).__init__()
         self.args = args
         self.kwargs = kwargs
+        self.setAutoDelete(True)
 
     def run(self) -> None:
         """
@@ -132,7 +134,7 @@ class MsConnectThread(QThread):
             self.connection_signal.emit(None)
 
 
-class MsSQLThread(QThread):
+class MsSQLThread(QRunnable):
 
     data_signal = pyqtSignal(object)
 
@@ -140,6 +142,7 @@ class MsSQLThread(QThread):
         super(MsSQLThread, self).__init__()
         self.connection = connection
         self.sql = sql
+        self.setAutoDelete(True)
 
     def run(self) -> None:
         """
@@ -163,3 +166,11 @@ class MsSQLThread(QThread):
             self.data_signal.emit(None)
         finally:
             cursor.close()
+
+
+class ThreadPool(QThreadPool):
+
+    def __init__(self, max_count=multiprocessing.cpu_count()) -> None:
+        super(ThreadPool, self).__init__()
+        self.setMaxThreadCount(maxThreadCount=max_count)
+
