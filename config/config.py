@@ -13,7 +13,7 @@ SCREEN_HEIGHT = 720
 
 # 数据库连接
 DATABASE_CONNECTION = {
-    "server": "DESKTOP-",
+    "server": "DESKTOP-AK42HVK",
     "user": "sa",
     "password": "123123",
     "database": "CourseSelection",
