@@ -84,21 +84,21 @@ class MainWindow(QWidget):
         else:
             QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
 
-    def slot_student_login_data(self, data: Dict[str, Any]) -> None:
+    def slot_student_login_data(self, data: List[Dict[str, Any]]) -> None:
         if not data:
-            self.student.user_data = data
             QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
         else:
             self.login.hide()
             self.student.show()
+            self.student.user_data = {k: str(v).encode("latin1").decode("gbk") for k, v in data[0].items()}
 
-    def slot_teacher_login_data(self, data: Dict[str, Any]) -> None:
+    def slot_teacher_login_data(self, data: List[Dict[str, Any]]) -> None:
         if not data:
-            self.teacher.user_data = data
             QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
         else:
             self.login.hide()
             self.teacher.show()
+            self.teacher.user_data = {k: str(v).encode("latin1").decode("gbk") for k, v in data[0].items()}
 
     def slot_student_fetchall_data(self, data: List[Dict[str, Any]]) -> None:
         """
@@ -129,7 +129,8 @@ class MainWindow(QWidget):
         学生系统
         点击已选课程按钮
         """
-        sql = ""
+        user_id = self.student.user_data["学号"]
+        sql = f"SELECT * FROM Course_info WHERE 学号='{user_id}' AND 已选课程 NOT NULL"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_student_fetchall_data)
         self.thread_pool.start(thread)
