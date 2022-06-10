@@ -6,6 +6,7 @@
 ...@description: 
 ...@date: 2022-06-08
 """
+import pymssql
 from pymssql import Connection
 from typing import List, Dict, Any
 from config import config
@@ -31,8 +32,8 @@ class MainWindow(QWidget):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.init_window()
         self.init_widgets()
-        self.connect_database()
         self.bind_slot()
+        self.connection = pymssql.connect(**config.DATABASE_CONNECTION)
 
     def init_window(self) -> None:
         """
@@ -54,20 +55,6 @@ class MainWindow(QWidget):
 
         self.admin = Admin(parent=self)
         self.admin.hide()
-
-    def slot_connect_database(self, connection: Connection) -> None:
-        """
-        连接数据库信号槽
-        """
-        self.connection = connection
-
-    def connect_database(self) -> None:
-        """
-        连接数据库
-        """
-        thread = MsConnectThread(config.DATABASE_CONNECTION)
-        thread.connection_signal.connect(self.slot_connect_database)
-        thread.start()
 
     def slot_btn_login_click(self) -> None:
         """
