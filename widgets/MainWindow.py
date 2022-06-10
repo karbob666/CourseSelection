@@ -129,4 +129,4 @@ class MainWindow(QWidget):
         绑定信号槽
         """
         self.login.btn_login.clicked.connect(self.slot_btn_login_click)
-        self.student.btn_course_info.connect(self.slot_btn_student_course_info_click)
+        self.student.btn_course_info.clicked.connect(self.slot_btn_student_course_info_click)
