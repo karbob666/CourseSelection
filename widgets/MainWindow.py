@@ -31,11 +31,11 @@ class MainWindow(QWidget):
 
     def __init__(self, *args, **kwargs) -> None:
         super(MainWindow, self).__init__(*args, **kwargs)
+        self.thread_pool = ThreadPool()
+        self.connection = pymssql.connect(**config.DATABASE_CONNECTION)
         self.init_window()
         self.init_widgets()
         self.bind_slot()
-        self.thread_pool = ThreadPool()
-        self.connection = pymssql.connect(**config.DATABASE_CONNECTION)
 
     def init_window(self) -> None:
         """
@@ -114,7 +114,7 @@ class MainWindow(QWidget):
             for column, item in enumerate(course_info.values()):
                 self.student.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
 
-    def slot_btn_student_course_info_click(self) -> None:
+    def slot_student_btn_course_info_click(self) -> None:
         """
         学生系统
         点击课程信息按钮
@@ -124,9 +124,20 @@ class MainWindow(QWidget):
         thread.data_signal.connect(self.slot_student_fetchall_data)
         self.thread_pool.start(thread)
 
+    def slot_student_btn_selected_click(self) -> None:
+        """
+        学生系统
+        点击已选课程按钮
+        """
+        sql = ""
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_student_fetchall_data)
+        self.thread_pool.start(thread)
+
     def bind_slot(self) -> None:
         """
         绑定信号槽
         """
         self.login.btn_login.clicked.connect(self.slot_btn_login_click)
-        self.student.btn_course_info.clicked.connect(self.slot_btn_student_course_info_click)
+        self.student.btn_course_info.clicked.connect(self.slot_student_btn_course_info_click)
+        self.student.btn_selected.clicked.connect(self.slot_student_btn_selected_click)
