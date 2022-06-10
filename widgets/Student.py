@@ -8,7 +8,7 @@
 """
 from config import config
 from typing import Dict, Any
-from PyQt5.QtWidgets import QWidget, QLabel, QFrame
+from PyQt5.QtWidgets import QWidget, QLabel, QFrame, QAbstractItemView
 from PyQt5.QtGui import QPaintEvent, QPainter, QPixmap, QColor
 from PyQt5.QtCore import Qt, QSize, QRect
 from widgets.Base import Button, Shadow, VLayout, HLayout, Table, Sidebar
@@ -102,16 +102,12 @@ class Student(QWidget):
         self.table = Table(parent=self)
         self.table.move(self.sidebar.width() + 20, 20)
         self.table.setMinimumSize(self.width() - self.sidebar.width() - 2 * 20, self.height() - 2 * 20)
-        self.table.setStyleSheet("""
-        QWidget {
-            border: 0;
-            outline: none;
-            font-size: 18px;
-        }
-        """)
-        self.table.setColumnCount(3)
-        self.table.horizontalHeader().setDefaultSectionSize(self.table.width() // 3)
-        self.table.setHorizontalHeaderLabels(["123", "1321", "312123"])
+        # 表格只能选中一行
+        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # 表格不可编辑
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # 不显示垂直的表头
+        self.table.verticalHeader().setVisible(False)
 
     def init_layout(self) -> None:
         """
