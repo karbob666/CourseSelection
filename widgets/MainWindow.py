@@ -75,8 +75,10 @@ class MainWindow(QWidget):
         user_name = self.login.input_user_name.text()
         password = self.login.input_password.text()
         if self.login.rb_student.isChecked():
-            self.student.show()
-            self.login.hide()
+            sql = f"SELECT * FROM Student WHERE 学号='{user_name}' AND 密码='{password}'"
+            thread = MsSQLThread(self.connection, sql)
+            thread.data_signal.connect(self.slot_student_login_data)
+            thread.start()
         elif self.login.rb_teacher.isChecked():
             self.teacher.show()
             self.login.hide()
@@ -84,6 +86,15 @@ class MainWindow(QWidget):
             if user_name == "admin" and password == "123123":
                 self.admin.show()
                 self.login.hide()
+
+    def slot_student_login_data(self, data: Dict[str, Any]) -> None:
+        if data is None:
+            print("密码错误")
+            print(data)
+        else:
+            print("密码正确")
+            self.login.hide()
+            self.student.show()
 
     def slot_student_fetchall_data(self, data: List[Dict[str, Any]]) -> None:
         """
@@ -102,7 +113,7 @@ class MainWindow(QWidget):
         """
         sql = ""
         thread = MsSQLThread(self.connection, sql)
-        thread.data_signal.connect(self.slot_fetchall_data())
+        thread.data_signal.connect(self.slot_student_fetchall_data)
 
     def bind_slot(self) -> None:
         """
