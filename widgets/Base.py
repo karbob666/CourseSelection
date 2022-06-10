@@ -77,8 +77,24 @@ class Table(QTableWidget):
 
     def __init__(self, *args, **kwargs) -> None:
         super(Table, self).__init__(*args, **kwargs)
+        self.setStyleSheet("""
+        QTableWidget{
+            border: 0;
+            outline: none;
+            font-size: 18px;
+            color: #2E2E2E;
+        }
+        QTableWidget::item::hover {
+            background: #D9EBF9;
+        }
+        QTableWidget::item:selected {
+            color: #2E2E2E;
+            background: #D9EBF9;
+        }
+        """)
         self.horizontalHeader().setStyleSheet("""
         QHeaderView::section {
+            font-size: 20px;
             font-weight: bold;
         }
         """)
