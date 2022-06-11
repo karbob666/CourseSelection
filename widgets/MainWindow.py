@@ -8,7 +8,7 @@
 """
 import pymssql
 from pymssql import Connection
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from config import config
 from widgets.Login import Login
 from widgets.Student import Student
@@ -32,7 +32,7 @@ class MainWindow(QWidget):
     def __init__(self, *args, **kwargs) -> None:
         super(MainWindow, self).__init__(*args, **kwargs)
         self.thread_pool = ThreadPool()
-        self.connection = pymssql.connect(**config.DATABASE_CONNECTION)
+        self.connect_database()
         self.init_window()
         self.init_widgets()
         self.bind_slot()
@@ -57,6 +57,26 @@ class MainWindow(QWidget):
 
         self.admin = Admin(parent=self)
         self.admin.hide()
+
+    def slot_connect_database(self, connection: Optional[Connection]):
+        """
+        连接到数据库的信号槽
+        """
+        if connection is None:
+            choice = QMessageBox.critical(self, "错误", "无法连接到数据库", QMessageBox.Retry | QMessageBox.Cancel)
+            if choice == QMessageBox.Retry:
+                return self.connect_database()
+            else:
+                return self.close()
+        self.connection = connection
+
+    def connect_database(self) -> None:
+        """
+        连接数据库
+        """
+        thread = MsConnectThread(**config.DATABASE_CONNECTION)
+        thread.connection_signal.connect(self.slot_connect_database)
+        self.thread_pool.start(thread)
 
     def slot_btn_login_click(self) -> None:
         """

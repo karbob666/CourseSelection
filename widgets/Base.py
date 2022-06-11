@@ -9,7 +9,6 @@
 import pymssql
 import multiprocessing
 from pymssql import Connection, Cursor, Error
-from typing import Any
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject
 from PyQt5.QtWidgets import (
@@ -132,7 +131,7 @@ class Sidebar(QWidget):
 class MsConnectThread(QRunnable):
 
     class Signals(QObject):
-        connection_signal = pyqtSignal(Connection)
+        connection_signal = pyqtSignal(object)
 
     def __init__(self, signals=Signals(), *args, **kwargs) -> None:
         super(MsConnectThread, self).__init__()
