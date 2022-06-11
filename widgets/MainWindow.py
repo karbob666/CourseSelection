@@ -104,7 +104,7 @@ class MainWindow(QWidget):
         else:
             QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
 
-    def slot_student_login_data(self, data: List[Dict[str, Any]]) -> None:
+    def slot_student_login_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         if not data:
             QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
         else:
@@ -112,7 +112,7 @@ class MainWindow(QWidget):
             self.student.show()
             self.student.user_data = {k: str(v).encode("latin1").decode("gbk") for k, v in data[0].items()}
 
-    def slot_teacher_login_data(self, data: List[Dict[str, Any]]) -> None:
+    def slot_teacher_login_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         if not data:
             QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
         else:
@@ -120,11 +120,19 @@ class MainWindow(QWidget):
             self.teacher.show()
             self.teacher.user_data = {k: str(v).encode("latin1").decode("gbk") for k, v in data[0].items()}
 
-    def slot_student_fetchall_data(self, data: List[Dict[str, Any]]) -> None:
+    def slot_student_fetchall_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         """
         学生系统
         查询所有数据信号槽
         """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
         header = data[0].keys()
         self.student.table.setRowCount(len(data))
         self.student.table.setColumnCount(len(header))
