@@ -9,8 +9,8 @@
 import pymssql
 import multiprocessing
 from pymssql import Connection, Cursor, Error
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject
+from PyQt5.QtGui import QColor, QPainter
+from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject, QModelIndex
 from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
@@ -21,6 +21,9 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QRadioButton,
     QTableWidget,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
 )
 
 
@@ -74,18 +77,28 @@ class Input(QLineEdit):
 
 class Table(QTableWidget):
 
+    class Delegate(QStyledItemDelegate):
+
+        def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
+            # 去除虚线框
+            if option.state & QStyle.State_HasFocus:
+                option.state = option.state ^ QStyle.State_HasFocus
+            # 交错颜色
+            painter.fillRect(option.rect, QColor("#FFF") if index.row() & 1 else QColor("#EEE"))
+            return super().paint(painter, option, index)
+
     def __init__(self, *args, **kwargs) -> None:
         super(Table, self).__init__(*args, **kwargs)
+        self.row = -1
+        self.setItemDelegate(self.Delegate())
         self.setStyleSheet("""
-        QTableWidget{
+        QTableWidget {
             border: 0;
             outline: none;
             font-size: 18px;
             color: #2E2E2E;
         }
-        QTableWidget::item::hover {
-            background: #D9EBF9;
-        }
+        QTableWidget::item::hover {}
         QTableWidget::item:selected {
             color: #2E2E2E;
             background: #D9EBF9;
