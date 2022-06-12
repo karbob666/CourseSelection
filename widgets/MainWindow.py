@@ -224,7 +224,7 @@ class MainWindow(QWidget):
         thread.data_signal.connect(self.slot_student_fetchall_data)
         self.thread_pool.start(thread)
 
-    def slot_student_btn_selected_click(self) -> None:
+    def slot_student_btn_selected_course_click(self) -> None:
         """
         学生系统
         点击已选课程按钮信号槽
@@ -252,12 +252,6 @@ class MainWindow(QWidget):
         thread.data_signal.connect(self.slot_student_table_course_manage_data)
         self.thread_pool.start(thread)
 
-    def slot_student_btn_cancel_course_click(self) -> None:
-        """
-        学生系统
-        点击退选按钮信号槽
-        """
-
     def slot_student_btn_course_manage_click(self) -> None:
         """
         学生系统
@@ -275,5 +269,5 @@ class MainWindow(QWidget):
         """
         self.login.btn_login.clicked.connect(self.slot_btn_login_click)
         self.student.btn_course_info.clicked.connect(self.slot_student_btn_course_info_click)
-        self.student.btn_selected.clicked.connect(self.slot_student_btn_selected_click)
+        self.student.btn_selected_course.clicked.connect(self.slot_student_btn_selected_course_click)
         self.student.btn_course_manage.clicked.connect(self.slot_student_btn_course_manage_click)

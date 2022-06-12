@@ -18,7 +18,7 @@ class Student(QWidget):
 
     sidebar: Sidebar
     btn_course_info: Button
-    btn_selected: Button
+    btn_selected_course: Button
     btn_course_manage: Button
     btn_user_info: Button
     table: Table
@@ -70,11 +70,11 @@ class Student(QWidget):
         self.btn_course_info.setGraphicsEffect(Shadow(0, 0, 20))
 
         # 已选课程按钮
-        self.btn_selected = Button()
-        self.btn_selected.setText("已选课程")
-        self.btn_selected.setFixedSize(btn_sidebar_size)
-        self.btn_selected.setStyleSheet(btn_sidebar_stylesheet)
-        self.btn_selected.setGraphicsEffect(Shadow(0, 0, 20))
+        self.btn_selected_course = Button()
+        self.btn_selected_course.setText("已选课程")
+        self.btn_selected_course.setFixedSize(btn_sidebar_size)
+        self.btn_selected_course.setStyleSheet(btn_sidebar_stylesheet)
+        self.btn_selected_course.setGraphicsEffect(Shadow(0, 0, 20))
 
         # 选课/退选按钮
         self.btn_course_manage = Button()
@@ -106,7 +106,7 @@ class Student(QWidget):
         初始化布局
         """
         self.sidebar.add_widget(self.btn_course_info)
-        self.sidebar.add_widget(self.btn_selected)
+        self.sidebar.add_widget(self.btn_selected_course)
         self.sidebar.add_widget(self.btn_course_manage)
         self.sidebar.add_widget(self.btn_user_info)
 
