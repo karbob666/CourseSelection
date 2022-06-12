@@ -13,11 +13,15 @@ SCREEN_HEIGHT = 720
 
 # 数据库连接
 DATABASE_CONNECTION = {
-    "server": "DESKTOP-AK42HVK",
+    "server": "",
     "user": "sa",
-    "password": "123123",
+    "password": "123@@qwe",
     "database": "CourseSelection",
     "charset": "utf8",
     "as_dict": True,
     "autocommit": False,
 }
+
+# 管理员账号密码
+ADMIN_ACCOUNT = "admin"
+ADMIN_PASSWORD = "123123"
