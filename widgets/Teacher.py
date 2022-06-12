@@ -8,10 +8,10 @@
 """
 from config import config
 from typing import Dict, Any
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QAbstractItemView
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QColor
-from widgets.Base import Shadow, Button, Sidebar
+from widgets.Base import Shadow, Button, Sidebar, Table
 
 
 class Teacher(QWidget):
@@ -20,6 +20,7 @@ class Teacher(QWidget):
     btn_teach_info: Button
     btn_student_info: Button
     btn_user_info: Button
+    table: Table
     user_data: Dict[str, Any]
 
     def __init__(self, *args, **kwargs) -> None:
@@ -80,6 +81,17 @@ class Teacher(QWidget):
         self.btn_user_info.setFixedSize(btn_sidebar_size)
         self.btn_user_info.setStyleSheet(btn_sidebar_stylesheet)
         self.btn_user_info.setGraphicsEffect(Shadow(0, 0, 20))
+
+        # 表格
+        self.table = Table(parent=self)
+        self.table.move(self.sidebar.width() + 20, 20)
+        self.table.setMinimumSize(self.width() - self.sidebar.width() - 2 * 20, self.height() - 2 * 20)
+        # 表格不能选中
+        self.table.setSelectionMode(QAbstractItemView.NoSelection)
+        # 表格不可编辑
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # 不显示垂直的表头
+        self.table.verticalHeader().setVisible(False)
 
     def init_layout(self) -> None:
         """
