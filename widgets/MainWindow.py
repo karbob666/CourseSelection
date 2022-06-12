@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 """
 ...@version: python 3.7
 ...@author: Karbob
 ...@fileName: MainWindow.py
-...@description: 
+...@description:
 ...@date: 2022-06-08
 """
-import pymssql
 from pymssql import Connection
 from typing import List, Dict, Any, Optional
 from config import config
@@ -14,9 +13,9 @@ from widgets.Login import Login
 from widgets.Student import Student
 from widgets.Teacher import Teacher
 from widgets.Admin import Admin
-from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool
-from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
-from PyQt5.QtCore import QSize, Qt
+from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout
+from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QAbstractItemView
+from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QColor
 
 
@@ -142,10 +141,83 @@ class MainWindow(QWidget):
             for column, item in enumerate(course_info.values()):
                 self.student.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
 
+    def slot_student_course_manage_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
+        """
+        学生系统
+        查询所有选课信息信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        header = data[0].keys()
+        self.student.table.setRowCount(len(data))
+        self.student.table.setColumnCount(len(header))
+        self.student.table.horizontalHeader().setDefaultSectionSize(self.student.table.width() // len(header))
+        self.student.table.setHorizontalHeaderLabels(header)
+        for row, course_info in enumerate(data):
+            for column, item in enumerate(course_info.values()):
+                if column+1 == self.student.table.columnCount():
+                    # 表格内的按钮
+                    button = self.student.get_btn_select_course() if str(item) == "0" \
+                             else self.student.get_btn_cancel_course()
+                    button.setObjectName(str(row))
+                    button.clicked.connect(self.slot_student_table_btn_course_manage_click)
+                    # 空白widget, 使按钮在表格中居中
+                    widget = QWidget()
+                    widget.setObjectName(str(item))
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    # 表格最后一行添加按钮
+                    self.student.table.setCellWidget(row, column, widget)
+                    continue
+                self.student.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
+
+    def slot_student_table_course_manage_data(self, data: Optional[bool]) -> None:
+        """
+        学生系统
+        选课或退选信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        # 获取按钮所在行和列
+        row = self.student.table.row
+        column = self.student.table.columnCount() - 1
+        # 获取按钮所在的控件上
+        widget: QWidget = self.student.table.cellWidget(row, column)
+        # 切换按钮
+        if widget.objectName() == "0":
+            button = self.student.get_btn_cancel_course()
+            widget = QWidget()
+            widget.setObjectName("1")
+        else:
+            button = self.student.get_btn_select_course()
+            widget = QWidget()
+            widget.setObjectName("0")
+        button.setObjectName(str(row))
+        button.clicked.connect(self.slot_student_table_btn_course_manage_click)
+        layout = HLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        layout.addWidget(button)
+        widget.setLayout(layout)
+        self.student.table.setCellWidget(row, column, widget)
+
     def slot_student_btn_course_info_click(self) -> None:
         """
         学生系统
-        点击课程信息按钮
+        点击课程信息按钮信号槽
         """
         sql = "SELECT 课程号,课程名,学时,学分,授课老师 FROM Course_info"
         thread = MsSQLThread(self.connection, sql)
@@ -155,12 +227,46 @@ class MainWindow(QWidget):
     def slot_student_btn_selected_click(self) -> None:
         """
         学生系统
-        点击已选课程按钮
+        点击已选课程按钮信号槽
         """
         user_id = self.student.user_data["学号"]
         sql = f"SELECT 课程号,已选课程 as 课程名,学时,学分,授课老师 FROM Course_choosen WHERE 学号='{user_id}'"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_student_fetchall_data)
+        self.thread_pool.start(thread)
+
+    def slot_student_table_btn_course_manage_click(self) -> None:
+        """
+        学生系统
+        点击选课按钮信号槽
+        """
+        # 获取学号和课程号
+        user_id = self.student.user_data["学号"]
+        row = int(self.student.table.sender().objectName())
+        course_id = self.student.table.item(row, 0).text()
+        # 设置当前行
+        self.student.table.row = row
+        # 执行sql
+        sql = f"exec Choose_or_not '{user_id}','{course_id}'"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_student_table_course_manage_data)
+        self.thread_pool.start(thread)
+
+    def slot_student_btn_cancel_course_click(self) -> None:
+        """
+        学生系统
+        点击退选按钮信号槽
+        """
+
+    def slot_student_btn_course_manage_click(self) -> None:
+        """
+        学生系统
+        点击选课按钮信号槽
+        """
+        user_id = self.student.user_data["学号"]
+        sql = f"select 课程号,课程名,学时,学分,授课老师,选课状态 as 操作 from Course_status('{user_id}')"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_student_course_manage_data)
         self.thread_pool.start(thread)
 
     def bind_slot(self) -> None:
@@ -170,3 +276,4 @@ class MainWindow(QWidget):
         self.login.btn_login.clicked.connect(self.slot_btn_login_click)
         self.student.btn_course_info.clicked.connect(self.slot_student_btn_course_info_click)
         self.student.btn_selected.clicked.connect(self.slot_student_btn_selected_click)
+        self.student.btn_course_manage.clicked.connect(self.slot_student_btn_course_manage_click)

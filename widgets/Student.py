@@ -19,8 +19,7 @@ class Student(QWidget):
     sidebar: Sidebar
     btn_course_info: Button
     btn_selected: Button
-    btn_select: Button
-    btn_cancel: Button
+    btn_course_manage: Button
     btn_user_info: Button
     table: Table
     user_data: Dict[str, Any]
@@ -77,19 +76,12 @@ class Student(QWidget):
         self.btn_selected.setStyleSheet(btn_sidebar_stylesheet)
         self.btn_selected.setGraphicsEffect(Shadow(0, 0, 20))
 
-        # 选课按钮
-        self.btn_select = Button()
-        self.btn_select.setText("选课")
-        self.btn_select.setFixedSize(btn_sidebar_size)
-        self.btn_select.setStyleSheet(btn_sidebar_stylesheet)
-        self.btn_select.setGraphicsEffect(Shadow(0, 0, 20))
-
-        # 退选按钮
-        self.btn_cancel = Button()
-        self.btn_cancel.setText("退选")
-        self.btn_cancel.setFixedSize(btn_sidebar_size)
-        self.btn_cancel.setStyleSheet(btn_sidebar_stylesheet)
-        self.btn_cancel.setGraphicsEffect(Shadow(0, 0, 20))
+        # 选课/退选按钮
+        self.btn_course_manage = Button()
+        self.btn_course_manage.setText("选课/退选")
+        self.btn_course_manage.setFixedSize(btn_sidebar_size)
+        self.btn_course_manage.setStyleSheet(btn_sidebar_stylesheet)
+        self.btn_course_manage.setGraphicsEffect(Shadow(0, 0, 20))
 
         # 个人信息按钮
         self.btn_user_info = Button()
@@ -102,8 +94,8 @@ class Student(QWidget):
         self.table = Table(parent=self)
         self.table.move(self.sidebar.width() + 20, 20)
         self.table.setMinimumSize(self.width() - self.sidebar.width() - 2 * 20, self.height() - 2 * 20)
-        # 表格只能选中一行
-        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # 表格不能选中
+        self.table.setSelectionMode(QAbstractItemView.NoSelection)
         # 表格不可编辑
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # 不显示垂直的表头
@@ -115,6 +107,51 @@ class Student(QWidget):
         """
         self.sidebar.add_widget(self.btn_course_info)
         self.sidebar.add_widget(self.btn_selected)
-        self.sidebar.add_widget(self.btn_select)
-        self.sidebar.add_widget(self.btn_cancel)
+        self.sidebar.add_widget(self.btn_course_manage)
         self.sidebar.add_widget(self.btn_user_info)
+
+    @staticmethod
+    def get_btn_select_course() -> Button:
+        """
+        获取选课按钮
+        """
+        button = Button()
+        button.setFixedSize(80, 30)
+        button.setText("选课")
+        button.setStyleSheet("""
+        QWidget {
+            font-size: 18px;
+            border: 0;
+            outline: none;
+            color: #FFF;
+            border-radius: 3px;
+            background: rgba(64, 169, 255, 255);
+        }
+        QWidget:hover {
+            background: rgba(64, 169, 255, 200);
+        }
+        """)
+        return button
+
+    @staticmethod
+    def get_btn_cancel_course() -> Button:
+        """
+        获取退选课程按钮
+        """
+        button = Button()
+        button.setFixedSize(80, 30)
+        button.setText("退选")
+        button.setStyleSheet("""
+        QWidget {
+            font-size: 18px;
+            border: 0;
+            outline: none;
+            color: #FFF;
+            border-radius: 3px;
+            background: rgba(255, 77, 79, 255);
+        }
+        QWidget:hover {
+            background: rgba(255, 77, 79, 200);
+        }
+        """)
+        return button
