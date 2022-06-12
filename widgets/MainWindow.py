@@ -97,7 +97,7 @@ class MainWindow(QWidget):
             self.thread_pool.start(thread)
             return
 
-        if user_name == "admin" and password == "123123":
+        if user_name == config.ADMIN_ACCOUNT and password == config.ADMIN_PASSWORD:
             self.admin.show()
             self.login.hide()
         else:
