@@ -255,6 +255,17 @@ class MainWindow(QWidget):
         thread.data_signal.connect(self.slot_student_course_manage_data)
         self.thread_pool.start(thread)
 
+    def slot_student_btn_logout_click(self) -> None:
+        """
+        学生系统
+        点击退出登录按钮的信号槽
+        """
+        self.student.user_data = None
+        self.student.hide()
+        self.login.input_user_name.clear()
+        self.login.input_password.clear()
+        self.login.show()
+
     def slot_teacher_login_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         if not data:
             QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
@@ -306,6 +317,17 @@ class MainWindow(QWidget):
         thread.data_signal.connect(self.slot_teacher_teach_info_data)
         self.thread_pool.start(thread)
 
+    def slot_teacher_btn_logout_click(self) -> None:
+        """
+        教师系统
+        点击退出登录按钮的信号槽
+        """
+        self.teacher.user_data.clear()
+        self.teacher.hide()
+        self.login.input_user_name.clear()
+        self.login.input_password.clear()
+        self.login.show()
+
     def bind_slot(self) -> None:
         """
         绑定信号槽
@@ -314,4 +336,6 @@ class MainWindow(QWidget):
         self.student.btn_course_info.clicked.connect(self.slot_student_btn_course_info_click)
         self.student.btn_selected_course.clicked.connect(self.slot_student_btn_selected_course_click)
         self.student.btn_course_manage.clicked.connect(self.slot_student_btn_course_manage_click)
+        self.student.btn_logout.clicked.connect(self.slot_student_btn_logout_click)
         self.teacher.btn_teach_info.clicked.connect(self.slot_teacher_btn_teach_info_click)
+        self.teacher.btn_logout.clicked.connect(self.slot_teacher_btn_logout_click)

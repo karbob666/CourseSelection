@@ -19,6 +19,7 @@ class Teacher(QWidget):
     sidebar: Sidebar
     btn_teach_info: Button
     btn_user_info: Button
+    btn_logout: Button
     table: Table
     user_data: Dict[str, Any]
 
@@ -67,19 +68,19 @@ class Teacher(QWidget):
         self.btn_teach_info.setStyleSheet(btn_sidebar_stylesheet)
         self.btn_teach_info.setGraphicsEffect(Shadow(0, 0, 20))
 
-        # 学生信息按钮
-        self.btn_student_info = Button()
-        self.btn_student_info.setText("学生信息")
-        self.btn_student_info.setFixedSize(btn_sidebar_size)
-        self.btn_student_info.setStyleSheet(btn_sidebar_stylesheet)
-        self.btn_student_info.setGraphicsEffect(Shadow(0, 0, 20))
-
         # 个人信息按钮
         self.btn_user_info = Button()
         self.btn_user_info.setText("个人信息")
         self.btn_user_info.setFixedSize(btn_sidebar_size)
         self.btn_user_info.setStyleSheet(btn_sidebar_stylesheet)
         self.btn_user_info.setGraphicsEffect(Shadow(0, 0, 20))
+
+        # 退出登录按钮
+        self.btn_logout = Button()
+        self.btn_logout.setText("退出登录")
+        self.btn_logout.setFixedSize(btn_sidebar_size)
+        self.btn_logout.setStyleSheet(btn_sidebar_stylesheet)
+        self.btn_logout.setGraphicsEffect(Shadow(0, 0, 20))
 
         # 表格
         self.table = Table(parent=self)
@@ -98,6 +99,7 @@ class Teacher(QWidget):
         """
         self.sidebar.add_widget(self.btn_teach_info)
         self.sidebar.add_widget(self.btn_user_info)
+        self.sidebar.add_widget(self.btn_logout)
 
     @staticmethod
     def get_btn_detail() -> Button:

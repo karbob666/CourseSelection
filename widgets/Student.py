@@ -21,6 +21,7 @@ class Student(QWidget):
     btn_selected_course: Button
     btn_course_manage: Button
     btn_user_info: Button
+    btn_logout: Button
     table: Table
     user_data: Dict[str, Any]
 
@@ -90,6 +91,13 @@ class Student(QWidget):
         self.btn_user_info.setStyleSheet(btn_sidebar_stylesheet)
         self.btn_user_info.setGraphicsEffect(Shadow(0, 0, 20))
 
+        # 退出登录按钮
+        self.btn_logout = Button()
+        self.btn_logout.setText("退出登录")
+        self.btn_logout.setFixedSize(btn_sidebar_size)
+        self.btn_logout.setStyleSheet(btn_sidebar_stylesheet)
+        self.btn_logout.setGraphicsEffect(Shadow(0, 0, 20))
+
         # 表格
         self.table = Table(parent=self)
         self.table.move(self.sidebar.width() + 20, 20)
@@ -109,6 +117,7 @@ class Student(QWidget):
         self.sidebar.add_widget(self.btn_selected_course)
         self.sidebar.add_widget(self.btn_course_manage)
         self.sidebar.add_widget(self.btn_user_info)
+        self.sidebar.add_widget(self.btn_logout)
 
     @staticmethod
     def get_btn_select_course() -> Button:
