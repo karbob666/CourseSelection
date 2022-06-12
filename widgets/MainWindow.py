@@ -13,7 +13,7 @@ from widgets.Login import Login
 from widgets.Student import Student
 from widgets.Teacher import Teacher
 from widgets.Admin import Admin
-from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout
+from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout, TableModal
 from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QAbstractItemView
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QColor
@@ -298,6 +298,8 @@ class MainWindow(QWidget):
                 # 最后一列添加操作按钮
                 if column+2 == self.teacher.table.columnCount():
                     button = self.teacher.get_btn_detail()
+                    button.setObjectName(str(row))
+                    button.clicked.connect(self.slot_teacher_table_btn_detail_click)
                     widget = QWidget()
                     layout = HLayout()
                     layout.setAlignment(Qt.AlignCenter)
@@ -305,6 +307,35 @@ class MainWindow(QWidget):
                     widget.setLayout(layout)
                     self.teacher.table.setCellWidget(row, column+1, widget)
                 self.teacher.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
+
+    def slot_teacher_table_detail_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
+        """
+        教师系统
+        查询课程的学生详情的信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        table_modal = TableModal(self.width(), self.height(), parent=self)
+        header = data[0].keys()
+        # 设置表格不可编辑
+        table_modal.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # 填充数据
+        table_modal.table.setRowCount(len(data))
+        table_modal.table.setColumnCount(len(header))
+        table_modal.table.horizontalHeader().setDefaultSectionSize(table_modal.table.width() // len(header))
+        table_modal.table.horizontalHeader().setStretchLastSection(True)
+        table_modal.table.setSelectionMode(QAbstractItemView.NoSelection)
+        table_modal.table.setHorizontalHeaderLabels(header)
+        for row, student_info in enumerate(data):
+            for column, item in enumerate(student_info.values()):
+                table_modal.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
+        table_modal.show()
 
     def slot_teacher_btn_teach_info_click(self) -> None:
         """
@@ -315,6 +346,19 @@ class MainWindow(QWidget):
         sql = f"SELECT 课程号,已选课程 as 课程名,学时,学分,已选人数 FROM Teach_view WHERE 工号={user_id}"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_teacher_teach_info_data)
+        self.thread_pool.start(thread)
+
+    def slot_teacher_table_btn_detail_click(self) -> None:
+        """
+        教师系统
+        点击表格内的查看详情按钮的信号槽
+        """
+        user_id = self.teacher.user_data["工号"]
+        row = self.teacher.table.sender().objectName()
+        course_id = self.teacher.table.item(int(row), 0).text()
+        sql = f"SELECT 学号,姓名,学生性别,专业名 FROM Course_choosen WHERE 工号={user_id} AND 课程号={course_id}"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_teacher_table_detail_data)
         self.thread_pool.start(thread)
 
     def slot_teacher_btn_logout_click(self) -> None:

@@ -106,8 +106,6 @@ class Student(QWidget):
         self.table.setSelectionMode(QAbstractItemView.NoSelection)
         # 表格不可编辑
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # 不显示垂直的表头
-        self.table.verticalHeader().setVisible(False)
 
     def init_layout(self) -> None:
         """
