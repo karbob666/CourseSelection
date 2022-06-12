@@ -18,7 +18,6 @@ class Teacher(QWidget):
 
     sidebar: Sidebar
     btn_teach_info: Button
-    btn_student_info: Button
     btn_user_info: Button
     table: Table
     user_data: Dict[str, Any]
@@ -98,5 +97,27 @@ class Teacher(QWidget):
         初始化布局
         """
         self.sidebar.add_widget(self.btn_teach_info)
-        self.sidebar.add_widget(self.btn_student_info)
         self.sidebar.add_widget(self.btn_user_info)
+
+    @staticmethod
+    def get_btn_detail() -> Button:
+        """
+        获取查看详情按钮
+        """
+        button = Button()
+        button.setText("查看详情")
+        button.setFixedSize(80, 30)
+        button.setStyleSheet("""
+        QWidget {
+            font-size: 18px;
+            border: 0;
+            outline: none;
+            color: #FFF;
+            border-radius: 3px;
+            background: rgba(64, 169, 255, 255);
+        }
+        QWidget:hover {
+            background: rgba(64, 169, 255, 200);
+        }
+        """)
+        return button

@@ -111,14 +111,6 @@ class MainWindow(QWidget):
             self.student.show()
             self.student.user_data = {k: str(v).encode("latin1").decode("gbk") for k, v in data[0].items()}
 
-    def slot_teacher_login_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
-        if not data:
-            QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
-        else:
-            self.login.hide()
-            self.teacher.show()
-            self.teacher.user_data = {k: str(v).encode("latin1").decode("gbk") for k, v in data[0].items()}
-
     def slot_student_fetchall_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         """
         学生系统
@@ -263,6 +255,57 @@ class MainWindow(QWidget):
         thread.data_signal.connect(self.slot_student_course_manage_data)
         self.thread_pool.start(thread)
 
+    def slot_teacher_login_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
+        if not data:
+            QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
+        else:
+            self.login.hide()
+            self.teacher.show()
+            self.teacher.user_data = {k: str(v).encode("latin1").decode("gbk") for k, v in data[0].items()}
+
+    def slot_teacher_teach_info_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
+        """
+        教师系统
+        查询所有选课学生信息数据的信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        header = list(data[0].keys())
+        header.append("")
+        self.teacher.table.setRowCount(len(data))
+        self.teacher.table.setColumnCount(len(header))
+        self.teacher.table.horizontalHeader().setDefaultSectionSize(self.teacher.table.width() // len(header))
+        self.teacher.table.setHorizontalHeaderLabels(header)
+        for row, teach_info in enumerate(data):
+            for column, item in enumerate(teach_info.values()):
+                # 最后一列添加操作按钮
+                if column+2 == self.teacher.table.columnCount():
+                    button = self.teacher.get_btn_detail()
+                    widget = QWidget()
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    self.teacher.table.setCellWidget(row, column+1, widget)
+                self.teacher.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
+
+    def slot_teacher_btn_teach_info_click(self) -> None:
+        """
+        教师系统
+        点击授课信息按钮的信号槽
+        """
+        user_id = self.teacher.user_data["工号"]
+        sql = f"SELECT 课程号,已选课程 as 课程名,学时,学分,已选人数 FROM Teach_view WHERE 工号={user_id}"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_teacher_teach_info_data)
+        self.thread_pool.start(thread)
+
     def bind_slot(self) -> None:
         """
         绑定信号槽
@@ -271,3 +314,4 @@ class MainWindow(QWidget):
         self.student.btn_course_info.clicked.connect(self.slot_student_btn_course_info_click)
         self.student.btn_selected_course.clicked.connect(self.slot_student_btn_selected_course_click)
         self.student.btn_course_manage.clicked.connect(self.slot_student_btn_course_manage_click)
+        self.teacher.btn_teach_info.clicked.connect(self.slot_teacher_btn_teach_info_click)
