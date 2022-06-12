@@ -9,7 +9,7 @@
 import pymssql
 import multiprocessing
 from pymssql import Connection, Cursor, Error
-from PyQt5.QtGui import QColor, QPainter
+from PyQt5.QtGui import QColor, QPainter, QPaintEvent
 from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject, QModelIndex
 from PyQt5.QtWidgets import (
     QWidget,
@@ -90,6 +90,9 @@ class Table(QTableWidget):
     def __init__(self, *args, **kwargs) -> None:
         super(Table, self).__init__(*args, **kwargs)
         self.row = -1
+        # 不显示垂直的表头
+        self.verticalHeader().setVisible(False)
+        # 表格样式
         self.setItemDelegate(self.Delegate())
         self.setStyleSheet("""
         QTableWidget {
@@ -110,6 +113,92 @@ class Table(QTableWidget):
             font-weight: bold;
         }
         """)
+
+
+class TableModal(QWidget):
+
+    table: Table
+    button: Button
+    main_width: int
+    main_height: int
+    
+    def __init__(self, width: int, height: int, *args, **kwargs) -> None:
+        super(TableModal, self).__init__(*args, **kwargs)
+        self.resize(width, height)
+        self.main_width = width*3 // 5
+        self.main_height = height*4 // 5
+        self.init_widgets()
+        self.init_layout()
+
+    def init_widgets(self) -> None:
+        """
+        初始化控件
+        """
+        self.table = Table(parent=self)
+        self.table.setGraphicsEffect(Shadow(0, 0, 20))
+        self.table.setFixedSize(self.main_width*4 // 5, self.main_height*4 // 5)
+
+        self.button = Button(parent=self)
+        self.button.setText("确定")
+        self.button.setFixedSize(120, 40)
+        self.button.setGraphicsEffect(Shadow(3, 3, 6))
+        self.button.clicked.connect(self.slot_btn_click)
+        self.button.setStyleSheet("""
+        QWidget {
+            font-size: 18px;
+            border: 0;
+            outline: none;
+            color: #FFF;
+            border-radius: 3px;
+            background: rgba(64, 169, 255, 255);
+        }
+        QWidget:hover {
+            background: rgba(64, 169, 255, 200);
+        }
+        """)
+
+    def init_layout(self) -> None:
+        """
+        初始化布局
+        """
+        # 表格布局
+        self.table.move(
+            self.width()//2 - self.table.width()//2,
+            self.height()//2 - self.table.height()//2 - self.button.height()//3
+        )
+        # 按钮布局
+        self.button.move(
+            self.width()//2 + self.main_width//2 - self.button.width() - self.main_height//50,
+            self.height()//2 + self.main_height//2 - self.button.height() - self.main_height//50
+        )
+
+    def slot_btn_click(self) -> None:
+        """
+        点击确认按钮
+        """
+        self.close()
+
+    def paintEvent(self, event: QPaintEvent) -> None:
+        """
+        绘制背景蒙版和显示内容区域的背景
+        """
+        painter = QPainter()
+        painter.begin(self)
+        # 抗锯齿
+        painter.setRenderHint(QPainter.Antialiasing)
+        # 绘制蒙版
+        mask = QColor(0, 0, 0, 50)
+        painter.fillRect(0, 0, self.width(), self.height(), mask)
+        # 绘制内容区域
+        background = QColor("#FFF")
+        painter.setBrush(background)
+        painter.setPen(Qt.transparent)
+        painter.drawRoundedRect(
+            self.width()//2 - self.main_width//2, self.height()//2 - self.main_height//2,
+            self.main_width, self.main_height,
+            10, 10
+        )
+        painter.end()
 
 
 class Sidebar(QWidget):
