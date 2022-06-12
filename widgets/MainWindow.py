@@ -16,7 +16,7 @@ from widgets.Admin import Admin
 from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout, TableModal
 from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QAbstractItemView
 from PyQt5.QtCore import Qt, QPoint
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QCloseEvent
 
 
 class MainWindow(QWidget):
@@ -383,3 +383,11 @@ class MainWindow(QWidget):
         self.student.btn_logout.clicked.connect(self.slot_student_btn_logout_click)
         self.teacher.btn_teach_info.clicked.connect(self.slot_teacher_btn_teach_info_click)
         self.teacher.btn_logout.clicked.connect(self.slot_teacher_btn_logout_click)
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        """
+        窗口关闭事件
+        """
+        # 关闭数据库连接
+        self.connection.close()
+        return super().closeEvent(event)
