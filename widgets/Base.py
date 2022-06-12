@@ -84,7 +84,7 @@ class Table(QTableWidget):
             if option.state & QStyle.State_HasFocus:
                 option.state = option.state ^ QStyle.State_HasFocus
             # 交错颜色
-            painter.fillRect(option.rect, QColor("#FFF") if index.row() & 1 else QColor("#EEE"))
+            painter.fillRect(option.rect, QColor("#FFF") if index.row() & 1 else QColor("#EFEFEF"))
             return super().paint(painter, option, index)
 
     def __init__(self, *args, **kwargs) -> None:
