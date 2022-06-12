@@ -19,6 +19,7 @@ class Admin(QWidget):
     btn_student_info: Button
     btn_course_info: Button
     btn_teach_info: Button
+    btn_logout: Button
 
     def __init__(self, *args, **kwargs) -> None:
         super(Admin, self).__init__(*args, **kwargs)
@@ -79,6 +80,13 @@ class Admin(QWidget):
         self.btn_teach_info.setStyleSheet(btn_sidebar_stylesheet)
         self.btn_teach_info.setGraphicsEffect(Shadow(0, 0, 20))
 
+        # 退出登录按钮
+        self.btn_logout = Button()
+        self.btn_logout.setText("退出登录")
+        self.btn_logout.setFixedSize(btn_sidebar_size)
+        self.btn_logout.setStyleSheet(btn_sidebar_stylesheet)
+        self.btn_logout.setGraphicsEffect(Shadow(0, 0, 20))
+
     def init_layout(self) -> None:
         """
         初始化布局
@@ -86,3 +94,4 @@ class Admin(QWidget):
         self.sidebar.add_widget(self.btn_student_info)
         self.sidebar.add_widget(self.btn_course_info)
         self.sidebar.add_widget(self.btn_teach_info)
+        self.sidebar.add_widget(self.btn_logout)

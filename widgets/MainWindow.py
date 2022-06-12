@@ -372,6 +372,16 @@ class MainWindow(QWidget):
         self.login.input_password.clear()
         self.login.show()
 
+    def slot_admin_btn_logout_click(self) -> None:
+        """
+        管理员
+        点击退出登录按钮的信号槽
+        """
+        self.admin.hide()
+        self.login.input_user_name.clear()
+        self.login.input_password.clear()
+        self.login.show()
+
     def bind_slot(self) -> None:
         """
         绑定信号槽
@@ -383,6 +393,7 @@ class MainWindow(QWidget):
         self.student.btn_logout.clicked.connect(self.slot_student_btn_logout_click)
         self.teacher.btn_teach_info.clicked.connect(self.slot_teacher_btn_teach_info_click)
         self.teacher.btn_logout.clicked.connect(self.slot_teacher_btn_logout_click)
+        self.admin.btn_logout.clicked.connect(self.slot_admin_btn_logout_click)
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """
