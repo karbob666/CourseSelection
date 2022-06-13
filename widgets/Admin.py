@@ -101,3 +101,26 @@ class Admin(QWidget):
         self.sidebar.add_widget(self.btn_course_manage)
         self.sidebar.add_widget(self.btn_teacher_manage)
         self.sidebar.add_widget(self.btn_logout)
+
+    @staticmethod
+    def get_btn_modify() -> Button:
+        """
+        获取修改按钮
+        """
+        button = Button()
+        button.setText("修改")
+        button.setFixedSize(80, 30)
+        button.setStyleSheet("""
+        QWidget {
+            font-size: 18px;
+            border: 0;
+            outline: none;
+            color: #FFF;
+            border-radius: 3px;
+            background: rgba(64, 169, 255, 255);
+        }
+        QWidget:hover {
+            background: rgba(64, 169, 255, 200);
+        }
+        """)
+        return button
