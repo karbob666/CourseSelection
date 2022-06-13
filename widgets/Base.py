@@ -214,7 +214,6 @@ class Modal(QWidget):
         """)
         # 内容区域
         self.widget = QWidget(parent=self)
-        self.widget.setGraphicsEffect(Shadow(0, 0, 20))
         # 按钮列表
         self.button_list = list()
 
@@ -246,7 +245,7 @@ class Modal(QWidget):
             self.height()//2 - self.widget.height()//2
         )
         # 修改按钮的位置和大小
-        for index, button in enumerate(self.button_list):
+        for index, button in enumerate(self.button_list[::-1]):
             margin = self.button_block_size.height() // 6
             button_size = QSize(
                 self.main_widget.width() // 8,
@@ -256,8 +255,8 @@ class Modal(QWidget):
                 button_size = QSize(button_size.width(), 40)
             button.resize(button_size)
             button.move(
-                self.width()//2 + self.main_widget.width()//2 - (index+1)*margin - button_size.width(),
-                self.height()//2 + self.main_widget.height()//2 -\
+                self.width()//2 + self.main_widget.width()//2 - (index+1)*margin - (index+1)*button_size.width(),
+                self.height()//2 + self.main_widget.height()//2 - \
                 self.button_block_size.height()//2 - button_size.height()//2
             )
 
@@ -282,6 +281,12 @@ class Modal(QWidget):
         layout = VLayout()
         layout.addWidget(widget)
         self.widget.setLayout(layout)
+
+    def set_widget_shadow(self, shadow: Shadow) -> None:
+        """
+        设置内容区域的阴影
+        """
+        self.widget.setGraphicsEffect(shadow)
 
     def paintEvent(self, event: QPaintEvent) -> None:
         """
@@ -326,6 +331,84 @@ class Modal(QWidget):
         窗口大小变化事件
         """
         self.resize_widgets()
+
+
+class InputModal(Modal):
+
+    label_list: List[QLabel]
+    input_list: List[Input]
+    btn_complete: Button
+
+    def __init__(self, width: int, height: int, *args, **kwargs) -> None:
+        super(InputModal, self).__init__(width, height, *args, **kwargs)
+        self.label_list = list()
+        self.input_list = list()
+        self.btn_complete = Button()
+        self.btn_complete.setText("完成")
+        self.btn_complete.setGraphicsEffect(Shadow(3, 3, 6))
+        self.btn_complete.setStyleSheet("""
+        QWidget {
+            font-size: 18px;
+            border: 0;
+            outline: none;
+            border-radius: 3px;
+            color: #FFF;
+            background: rgba(64, 169, 255, 255);
+        }
+        QWidget:hover {
+            background: rgba(64, 169, 255, 200);
+        }
+        """)
+        self.add_button(self.btn_complete)
+
+    def set_content(self, labels: List[str], inputs: List[str]) -> None:
+        """
+        设置以输入框为主的内容
+        """
+        layout = VLayout()
+        for label_text, input_text in zip(labels, inputs):
+            temp_layout = HLayout()
+            # 左边的label
+            label = QLabel()
+            label.setText(f"{label_text}：")
+            label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            label.setStyleSheet("""
+            QWidget {
+                font-size: 18px;
+            }
+            """)
+            temp_layout.addWidget(label)
+            # 右边的输入框
+            _input = Input()
+            _input.setText(input_text)
+            temp_layout.addWidget(_input)
+            # 添加布局
+            layout.addLayout(temp_layout)
+            # 添加到列表
+            self.label_list.append(label)
+            self.input_list.append(_input)
+        self.resize_content()
+        self.widget.setLayout(layout)
+
+    def resize_content(self) -> None:
+        """
+        重新设置控件大小
+        """
+        for label, _input in zip(self.label_list, self.input_list):
+            label.setFixedSize(self.widget.width() // 5, 40)
+            _input.setFixedSize(self.widget.width()*4 // 5, 40)
+
+    def label_at(self, index: int) -> QLabel:
+        """
+        根据下标获取Label
+        """
+        return self.label_list[index]
+
+    def input_at(self, index: int) -> Input:
+        """
+        根据下标获取输入框控件
+        """
+        return self.input_list[index]
 
 
 class Sidebar(QWidget):
