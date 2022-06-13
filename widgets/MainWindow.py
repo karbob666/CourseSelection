@@ -7,13 +7,13 @@
 ...@date: 2022-06-08
 """
 from pymssql import Connection
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from config import config
 from widgets.Login import Login
 from widgets.Student import Student
 from widgets.Teacher import Teacher
 from widgets.Admin import Admin
-from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout, TableModal
+from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout, Modal, Table, InputModal
 from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCloseEvent
@@ -25,6 +25,7 @@ class MainWindow(QWidget):
     student: Student
     teacher: Teacher
     admin: Admin
+    modal: Union[Modal, InputModal]
     connection: Connection
     thread_pool: ThreadPool
 
@@ -109,7 +110,7 @@ class MainWindow(QWidget):
         else:
             self.login.hide()
             self.student.show()
-            self.student.user_data = {k: str(v).encode("latin1").decode("gbk") for k, v in data[0].items()}
+            self.student.user_data = {k: str(v).strip().encode("latin1").decode("gbk") for k, v in data[0].items()}
 
     def slot_student_fetchall_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         """
@@ -131,7 +132,8 @@ class MainWindow(QWidget):
         self.student.table.setHorizontalHeaderLabels(header)
         for row, course_info in enumerate(data):
             for column, item in enumerate(course_info.values()):
-                self.student.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
+                item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
+                self.student.table.setItem(row, column, item)
 
     def slot_student_course_manage_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         """
@@ -169,7 +171,8 @@ class MainWindow(QWidget):
                     # 表格最后一行添加按钮
                     self.student.table.setCellWidget(row, column, widget)
                     continue
-                self.student.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
+                item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
+                self.student.table.setItem(row, column, item)
 
     def slot_student_table_course_manage_data(self, data: Optional[bool]) -> None:
         """
@@ -272,7 +275,7 @@ class MainWindow(QWidget):
         else:
             self.login.hide()
             self.teacher.show()
-            self.teacher.user_data = {k: str(v).encode("latin1").decode("gbk") for k, v in data[0].items()}
+            self.teacher.user_data = {k: str(v).strip().encode("latin1").decode("gbk") for k, v in data[0].items()}
 
     def slot_teacher_teach_info_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         """
@@ -306,7 +309,8 @@ class MainWindow(QWidget):
                     layout.addWidget(button)
                     widget.setLayout(layout)
                     self.teacher.table.setCellWidget(row, column+1, widget)
-                self.teacher.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
+                item = QTableWidgetItem((str(item).strip().encode("latin1").decode("gbk")))
+                self.teacher.table.setItem(row, column, item)
 
     def slot_teacher_table_detail_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         """
@@ -322,16 +326,19 @@ class MainWindow(QWidget):
             return
 
         # 表格数据
-        table_modal = TableModal(self.width(), self.height(), parent=self)
+        self.modal = Modal(self.width(), self.height(), parent=self)
+        self.modal.set_title("授课详情")
+        table = Table()
         header = data[0].keys()
-        table_modal.table.clear()
-        table_modal.table.setRowCount(len(data))
-        table_modal.table.setColumnCount(len(header))
-        table_modal.table.setHorizontalHeaderLabels(header)
+        table.setRowCount(len(data))
+        table.setColumnCount(len(header))
+        table.setHorizontalHeaderLabels(header)
         for row, student_info in enumerate(data):
             for column, item in enumerate(student_info.values()):
-                table_modal.table.setItem(row, column, QTableWidgetItem(str(item).encode("latin1").decode("gbk")))
-        table_modal.show()
+                item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
+                table.setItem(row, column, item)
+        self.modal.set_widget(table)
+        self.modal.show()
 
     def slot_teacher_btn_teach_info_click(self) -> None:
         """
@@ -368,6 +375,99 @@ class MainWindow(QWidget):
         self.login.input_password.clear()
         self.login.show()
 
+    def slot_admin_student_manage_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
+        """
+        管理员
+        查询学生管理信息的信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        header = list(data[0].keys())
+        header.append("")
+        self.admin.table.clear()
+        self.admin.table.setRowCount(len(data))
+        self.admin.table.setColumnCount(len(header))
+        self.admin.table.setHorizontalHeaderLabels(header)
+        for row, student_info in enumerate(data):
+            for column, item in enumerate(student_info.values()):
+                # 最后一列添加操作按钮
+                if column+2 == self.admin.table.columnCount():
+                    button = self.admin.get_btn_modify()
+                    button.setObjectName(str(row))
+                    button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    widget = QWidget()
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    self.admin.table.setCellWidget(row, column+1, widget)
+                item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
+                self.admin.table.setItem(row, column, item)
+
+    def slot_admin_table_btn_student_manage_modify_click(self) -> None:
+        """
+        管理员
+        学生管理表格中点击修改按钮的信号槽
+        """
+        row = int(self.admin.table.sender().objectName())
+        self.admin.table.row = row
+        header = [self.admin.table.horizontalHeaderItem(i).text() for i in range(self.admin.table.columnCount()-1)]
+        items = [self.admin.table.item(row, column).text() for column in range(self.admin.table.columnCount()-1)]
+        self.modal = InputModal(self.width(), self.height(), parent=self)
+        self.modal.set_content(header, items)
+        self.modal.set_title("学生管理")
+        self.modal.input_at(0).setReadOnly(True)
+        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_student_manage_click)
+        self.modal.show()
+
+    def slot_admin_btn_student_manage_click(self) -> None:
+        """
+        管理员
+        点击学生管理按钮的信号槽
+        """
+        sql = "SELECT 学号,姓名,性别,年龄,专业名,密码,备注 FROM Student"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_student_manage_data)
+        self.thread_pool.start(thread)
+
+    def slot_admin_modal_student_manage_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        学生管理模态框中的完成按钮返回数据的信号槽
+        """
+        if not data:
+            QMessageBox.critical(self, "错误", "修改信息发生错误", QMessageBox.Ok)
+            return
+
+        # 修改表格中数据
+        items = [_input.text() for _input in self.modal.input_list]
+        row = self.admin.table.row
+        for column, item in enumerate(items):
+            self.admin.table.setItem(row, column, QTableWidgetItem(item))
+        # 关闭模态框
+        self.modal.close()
+
+    def slot_admin_modal_btn_student_manage_click(self) -> None:
+        """
+        管理员
+        学生管理模态框中的完成按钮的信号槽
+        """
+        if not self.modal:
+            return
+        data = [_input.text() for _input in self.modal.input_list]
+        user_id = data.pop(0)
+        data.append(user_id)
+        sql = "UPDATE Student SET 姓名='{}',性别='{}',年龄='{}',专业名='{}',密码='{}',备注='{}' WHERE 学号='{}'".format(*data)
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_modal_student_manage_data)
+        self.thread_pool.start(thread)
+
     def slot_admin_btn_logout_click(self) -> None:
         """
         管理员
@@ -389,6 +489,7 @@ class MainWindow(QWidget):
         self.student.btn_logout.clicked.connect(self.slot_student_btn_logout_click)
         self.teacher.btn_teach_info.clicked.connect(self.slot_teacher_btn_teach_info_click)
         self.teacher.btn_logout.clicked.connect(self.slot_teacher_btn_logout_click)
+        self.admin.btn_student_manage.clicked.connect(self.slot_admin_btn_student_manage_click)
         self.admin.btn_logout.clicked.connect(self.slot_admin_btn_logout_click)
 
     def closeEvent(self, event: QCloseEvent) -> None:
