@@ -45,18 +45,6 @@ class Login(QWidget):
         """
         初始化所有控件
         """
-
-        input_stylesheet = """
-        QWidget {
-            border: 1px solid #b3b3b3;
-            border-radius: 5px;
-            font-size: 18px;
-            padding-left: 10px;
-        }
-        QWidget:focus {
-            border: 1px solid rgba(128, 183, 249, 255);
-        }
-        """
         rb_stylesheet = """
         QWidget {
             font-size: 18px;
@@ -81,14 +69,12 @@ class Login(QWidget):
         self.input_user_name = Input()
         self.input_user_name.setPlaceholderText("请输入账号")
         self.input_user_name.setFixedSize(300, 40)
-        self.input_user_name.setStyleSheet(input_stylesheet)
 
         # 密码输入框
         self.input_password = Input()
         self.input_password.setPlaceholderText("请输入密码")
         self.input_password.setFixedSize(300, 40)
         self.input_password.setEchoMode(QLineEdit.Password)
-        self.input_password.setStyleSheet(input_stylesheet)
 
         # 错误提示
         self.label_error = QLabel()
