@@ -14,7 +14,7 @@ from widgets.Student import Student
 from widgets.Teacher import Teacher
 from widgets.Admin import Admin
 from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout, TableModal
-from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QAbstractItemView
+from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCloseEvent
 
@@ -125,6 +125,7 @@ class MainWindow(QWidget):
             return
 
         header = data[0].keys()
+        self.student.table.clear()
         self.student.table.setRowCount(len(data))
         self.student.table.setColumnCount(len(header))
         self.student.table.setHorizontalHeaderLabels(header)
@@ -146,6 +147,7 @@ class MainWindow(QWidget):
             return
 
         header = data[0].keys()
+        self.student.table.clear()
         self.student.table.setRowCount(len(data))
         self.student.table.setColumnCount(len(header))
         self.student.table.setHorizontalHeaderLabels(header)
@@ -287,6 +289,7 @@ class MainWindow(QWidget):
 
         header = list(data[0].keys())
         header.append("")
+        self.teacher.table.clear()
         self.teacher.table.setRowCount(len(data))
         self.teacher.table.setColumnCount(len(header))
         self.teacher.table.setHorizontalHeaderLabels(header)
@@ -318,16 +321,12 @@ class MainWindow(QWidget):
             QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
             return
 
+        # 表格数据
         table_modal = TableModal(self.width(), self.height(), parent=self)
         header = data[0].keys()
-        # 设置表格不可编辑
-        table_modal.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # 填充数据
+        table_modal.table.clear()
         table_modal.table.setRowCount(len(data))
         table_modal.table.setColumnCount(len(header))
-        table_modal.table.horizontalHeader().setDefaultSectionSize(table_modal.table.width() // len(header))
-        table_modal.table.horizontalHeader().setStretchLastSection(True)
-        table_modal.table.setSelectionMode(QAbstractItemView.NoSelection)
         table_modal.table.setHorizontalHeaderLabels(header)
         for row, student_info in enumerate(data):
             for column, item in enumerate(student_info.values()):
