@@ -98,12 +98,14 @@ class Input(QLineEdit):
         获取焦点事件
         """
         self.setGraphicsEffect(Shadow(0, 0, 10, QColor(64, 169, 255)))
+        return super().focusInEvent(event)
 
     def focusOutEvent(self, event: QFocusEvent) -> None:
         """
         失去焦点事件
         """
         self.setGraphicsEffect(Shadow(0, 0, 0, Qt.transparent))
+        return super().focusOutEvent(event)
 
 
 class Table(QTableWidget):
