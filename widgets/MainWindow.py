@@ -211,7 +211,7 @@ class MainWindow(QWidget):
         学生系统
         点击课程信息按钮信号槽
         """
-        sql = "SELECT 课程号,课程名,学时,学分,授课老师 FROM Course_info"
+        sql = "SELECT 课程号,课程名,学时,学分,授课老师 FROM Course_taught"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_student_fetchall_data)
         self.thread_pool.start(thread)
@@ -222,7 +222,7 @@ class MainWindow(QWidget):
         点击已选课程按钮信号槽
         """
         user_id = self.student.user_data["学号"]
-        sql = f"SELECT 课程号,已选课程 as 课程名,学时,学分,授课老师 FROM Course_choosen WHERE 学号='{user_id}'"
+        sql = f"SELECT 课程号,已选课程 AS 课程名,学时,学分,授课老师 FROM Course_choosen WHERE 学号='{user_id}'"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_student_fetchall_data)
         self.thread_pool.start(thread)
@@ -250,7 +250,7 @@ class MainWindow(QWidget):
         点击选课按钮信号槽
         """
         user_id = self.student.user_data["学号"]
-        sql = f"select 课程号,课程名,学时,学分,授课老师,选课状态 as 操作 from Course_status('{user_id}')"
+        sql = f"SELECT 课程号,课程名,学时,学分,授课老师,选课状态 AS 操作 FROM Course_status('{user_id}')"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_student_course_manage_data)
         self.thread_pool.start(thread)
@@ -339,7 +339,7 @@ class MainWindow(QWidget):
         点击授课信息按钮的信号槽
         """
         user_id = self.teacher.user_data["工号"]
-        sql = f"SELECT 课程号,已选课程 as 课程名,学时,学分,已选人数 FROM Teach_view WHERE 工号={user_id}"
+        sql = f"SELECT 课程号,已选课程 AS 课程名,学时,学分,已选人数 FROM Teach_view WHERE 工号={user_id}"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_teacher_teach_info_data)
         self.thread_pool.start(thread)
