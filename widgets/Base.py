@@ -9,11 +9,12 @@
 import pymssql
 import multiprocessing
 from pymssql import Connection, Cursor, Error
-from PyQt5.QtGui import QColor, QPainter, QPaintEvent
+from PyQt5.QtGui import QColor, QPainter, QPaintEvent, QFontMetrics, QCursor
 from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject, QModelIndex
 from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
+    QToolTip,
     QPushButton,
     QHBoxLayout,
     QVBoxLayout,
@@ -23,6 +24,7 @@ from PyQt5.QtWidgets import (
     QTableWidget,
     QHeaderView,
     QAbstractItemView,
+    QTableWidgetItem,
     QStyle,
     QStyledItemDelegate,
     QStyleOptionViewItem,
@@ -91,6 +93,7 @@ class Table(QTableWidget):
 
     def __init__(self, *args, **kwargs) -> None:
         super(Table, self).__init__(*args, **kwargs)
+        self.setMouseTracking(True)
         self.row = -1
         # 不显示垂直的表头
         self.verticalHeader().setVisible(False)
@@ -121,6 +124,19 @@ class Table(QTableWidget):
             font-weight: bold;
         }
         """)
+        # 绑定信号槽
+        self.itemEntered.connect(self.slot_item_entered)
+
+    def slot_item_entered(self, item: QTableWidgetItem) -> None:
+        """
+        进入单元格事件的信号槽
+        """
+        metrics = QFontMetrics(self.font())
+        font_width = metrics.width(item.text())
+        index = self.indexFromItem(item)
+        column_width = self.columnWidth(index.column())
+        if font_width > column_width:
+            QToolTip.showText(QCursor.pos(), item.text())
 
 
 class TableModal(QWidget):
