@@ -136,7 +136,7 @@ class Table(QTableWidget):
         self.setItemDelegate(self.Delegate())
         self.setStyleSheet("""
         QTableWidget {
-            border: 0;
+            border: 1 solid #D8D8D8;
             outline: none;
             font-size: 18px;
             color: #2E2E2E;
