@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QWidget
 from config import config
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QColor
-from widgets.Base import Sidebar, Button, Shadow
+from widgets.Base import Sidebar, Button, Shadow, Table
 
 
 class Admin(QWidget):
@@ -20,6 +20,7 @@ class Admin(QWidget):
     btn_course_info: Button
     btn_teach_info: Button
     btn_logout: Button
+    table: Table
 
     def __init__(self, *args, **kwargs) -> None:
         super(Admin, self).__init__(*args, **kwargs)
@@ -86,6 +87,11 @@ class Admin(QWidget):
         self.btn_logout.setFixedSize(btn_sidebar_size)
         self.btn_logout.setStyleSheet(btn_sidebar_stylesheet)
         self.btn_logout.setGraphicsEffect(Shadow(0, 0, 20))
+
+        # 表格
+        self.table = Table(parent=self)
+        self.table.move(self.sidebar.width() + 20, 20)
+        self.table.setMinimumSize(self.width() - self.sidebar.width() - 2 * 20, self.height() - 2 * 20)
 
     def init_layout(self) -> None:
         """
