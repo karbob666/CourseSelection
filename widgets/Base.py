@@ -11,7 +11,7 @@ import multiprocessing
 from typing import List
 from pymssql import Connection, Cursor, Error
 from PyQt5.QtGui import QColor, QPainter, QPaintEvent, QFontMetrics, QCursor, QResizeEvent, QFocusEvent
-from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject, QModelIndex, QSize
+from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject, QModelIndex, QSize, QEvent
 from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
@@ -93,10 +93,42 @@ class Input(QLineEdit):
         }
         """)
 
+    def setReadOnly(self, readonly: bool) -> None:
+        super().setReadOnly(readonly)
+        if readonly:
+            self.setCursor(Qt.ForbiddenCursor)
+            self.setStyleSheet("""
+            QWidget {
+                border: 1px solid #D9D9D9;
+                border-radius: 5px;
+                font-size: 18px;
+                padding-left: 10px;
+                background: #F5F5F5;
+            }
+            """)
+        else:
+            self.setCursor(Qt.CustomCursor)
+            self.setStyleSheet("""
+            QWidget {
+                border: 1px solid #D9D9D9;
+                border-radius: 5px;
+                font-size: 18px;
+                padding-left: 10px;
+            }
+            QWidget:focus {
+                border: 1px solid rgba(64, 169, 255, 255);
+            }
+            QWidget:hover {
+                border: 1px solid rgba(64, 169, 255, 255);
+            }
+            """)
+
     def focusInEvent(self, event: QFocusEvent) -> None:
         """
         获取焦点事件
         """
+        if self.isReadOnly():
+            return
         self.setGraphicsEffect(Shadow(0, 0, 10, QColor(64, 169, 255)))
         return super().focusInEvent(event)
 
@@ -104,6 +136,8 @@ class Input(QLineEdit):
         """
         失去焦点事件
         """
+        if self.isReadOnly():
+            return
         self.setGraphicsEffect(Shadow(0, 0, 0, Qt.transparent))
         return super().focusOutEvent(event)
 
