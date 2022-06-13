@@ -8,10 +8,10 @@
 """
 from config import config
 from typing import Dict, Any
-from PyQt5.QtWidgets import QWidget, QLabel, QFrame, QAbstractItemView
-from PyQt5.QtGui import QPaintEvent, QPainter, QPixmap, QColor
-from PyQt5.QtCore import Qt, QSize, QRect
-from widgets.Base import Button, Shadow, VLayout, HLayout, Table, Sidebar
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtGui import QColor
+from PyQt5.QtCore import QSize
+from widgets.Base import Button, Shadow, Table, Sidebar
 
 
 class Student(QWidget):
@@ -102,10 +102,6 @@ class Student(QWidget):
         self.table = Table(parent=self)
         self.table.move(self.sidebar.width() + 20, 20)
         self.table.setMinimumSize(self.width() - self.sidebar.width() - 2 * 20, self.height() - 2 * 20)
-        # 表格不能选中
-        self.table.setSelectionMode(QAbstractItemView.NoSelection)
-        # 表格不可编辑
-        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
     def init_layout(self) -> None:
         """

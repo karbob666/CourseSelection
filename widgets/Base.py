@@ -21,6 +21,8 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QRadioButton,
     QTableWidget,
+    QHeaderView,
+    QAbstractItemView,
     QStyle,
     QStyledItemDelegate,
     QStyleOptionViewItem,
@@ -92,6 +94,12 @@ class Table(QTableWidget):
         self.row = -1
         # 不显示垂直的表头
         self.verticalHeader().setVisible(False)
+        # 自动调整列宽
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # 表格不能选中
+        self.setSelectionMode(QAbstractItemView.NoSelection)
+        # 表格不可编辑
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # 表格样式
         self.setItemDelegate(self.Delegate())
         self.setStyleSheet("""

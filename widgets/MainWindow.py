@@ -15,8 +15,8 @@ from widgets.Teacher import Teacher
 from widgets.Admin import Admin
 from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout, TableModal
 from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem, QAbstractItemView
-from PyQt5.QtCore import Qt, QPoint
-from PyQt5.QtGui import QColor, QCloseEvent
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QCloseEvent
 
 
 class MainWindow(QWidget):
@@ -127,7 +127,6 @@ class MainWindow(QWidget):
         header = data[0].keys()
         self.student.table.setRowCount(len(data))
         self.student.table.setColumnCount(len(header))
-        self.student.table.horizontalHeader().setDefaultSectionSize(self.student.table.width() // len(header))
         self.student.table.setHorizontalHeaderLabels(header)
         for row, course_info in enumerate(data):
             for column, item in enumerate(course_info.values()):
@@ -149,7 +148,6 @@ class MainWindow(QWidget):
         header = data[0].keys()
         self.student.table.setRowCount(len(data))
         self.student.table.setColumnCount(len(header))
-        self.student.table.horizontalHeader().setDefaultSectionSize(self.student.table.width() // len(header))
         self.student.table.setHorizontalHeaderLabels(header)
         for row, course_info in enumerate(data):
             for column, item in enumerate(course_info.values()):
@@ -291,7 +289,6 @@ class MainWindow(QWidget):
         header.append("")
         self.teacher.table.setRowCount(len(data))
         self.teacher.table.setColumnCount(len(header))
-        self.teacher.table.horizontalHeader().setDefaultSectionSize(self.teacher.table.width() // len(header))
         self.teacher.table.setHorizontalHeaderLabels(header)
         for row, teach_info in enumerate(data):
             for column, item in enumerate(teach_info.values()):
