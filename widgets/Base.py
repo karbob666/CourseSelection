@@ -8,9 +8,10 @@
 """
 import pymssql
 import multiprocessing
+from typing import List
 from pymssql import Connection, Cursor, Error
-from PyQt5.QtGui import QColor, QPainter, QPaintEvent, QFontMetrics, QCursor
-from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject, QModelIndex
+from PyQt5.QtGui import QColor, QPainter, QPaintEvent, QFontMetrics, QCursor, QResizeEvent
+from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject, QModelIndex, QSize
 from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
@@ -139,68 +140,120 @@ class Table(QTableWidget):
             QToolTip.showText(QCursor.pos(), item.text())
 
 
-class TableModal(QWidget):
+class Modal(QWidget):
 
-    table: Table
-    button: Button
-    main_width: int
-    main_height: int
-    
+    main_widget: QWidget
+    title: QLabel
+    widget: QWidget
+    title_block_size: QSize
+    button_block_size: QSize
+    button_list: List[Button]
+
     def __init__(self, width: int, height: int, *args, **kwargs) -> None:
-        super(TableModal, self).__init__(*args, **kwargs)
+        super(Modal, self).__init__(*args, **kwargs)
         self.resize(width, height)
-        self.main_width = width*3 // 5
-        self.main_height = height*4 // 5
         self.init_widgets()
-        self.init_layout()
+        self.resize_widgets()
+        button = Button()
+        button.setText("取消")
+        button.clicked.connect(self.close)
+        button.setStyleSheet("""
+        QWidget {
+            font-size: 18px;
+            border: 1px solid #D9D9D9;
+            outline: none;
+            border-radius: 3px;
+        }
+        QWidget:hover {
+            color: rgba(64, 169, 255, 255);
+            border: 1px solid rgba(64, 169, 255, 255);
+        }
+        """)
+        self.add_button(button)
 
     def init_widgets(self) -> None:
         """
         初始化控件
         """
-        self.table = Table(parent=self)
-        self.table.setGraphicsEffect(Shadow(0, 0, 20))
-        self.table.setFixedSize(self.main_width*4 // 5, self.main_height*4 // 5)
-
-        self.button = Button(parent=self)
-        self.button.setText("确定")
-        self.button.setFixedSize(120, 40)
-        self.button.setGraphicsEffect(Shadow(3, 3, 6))
-        self.button.clicked.connect(self.slot_btn_click)
-        self.button.setStyleSheet("""
+        # 显示内容区域
+        self.main_widget = QWidget(parent=self)
+        # 标题
+        self.title = QLabel(parent=self)
+        self.title.setStyleSheet("""
         QWidget {
-            font-size: 18px;
-            border: 0;
-            outline: none;
-            color: #FFF;
-            border-radius: 3px;
-            background: rgba(64, 169, 255, 255);
-        }
-        QWidget:hover {
-            background: rgba(64, 169, 255, 200);
+            font-size: 24px;
         }
         """)
+        # 内容区域
+        self.widget = QWidget(parent=self)
+        self.widget.setGraphicsEffect(Shadow(0, 0, 20))
+        # 按钮列表
+        self.button_list = list()
 
-    def init_layout(self) -> None:
+    def resize_widgets(self) -> None:
         """
-        初始化布局
+        重新设置控件大小
         """
-        # 表格布局
-        self.table.move(
-            self.width()//2 - self.table.width()//2,
-            self.height()//2 - self.table.height()//2 - self.button.height()//3
+        # 修改显示内容的控件的位置和大小
+        self.main_widget.resize(self.width()*3 // 5, self.height()*4 // 5)
+        self.main_widget.move(
+            self.width()//2 - self.main_widget.width()//2,
+            self.height()//2 - self.main_widget.height()//2
         )
-        # 按钮布局
-        self.button.move(
-            self.width()//2 + self.main_width//2 - self.button.width() - self.main_height//50,
-            self.height()//2 + self.main_height//2 - self.button.height() - self.main_height//50
+        # 标题区域的大小
+        self.title_block_size = QSize(self.main_widget.width(), self.main_widget.height() // 10)
+        # 按钮区域的大小
+        self.button_block_size = QSize(self.main_widget.width(), self.main_widget.height() // 10)
+        # 修改标题的位置和大小
+        metrics = QFontMetrics(self.title.font())
+        font_height = metrics.height()
+        self.title.move(
+            self.width()//2 - self.main_widget.width()//2 + self.main_widget.width()//50,
+            self.height()//2 - self.main_widget.height()//2 + self.title_block_size.height()//2 - font_height//2
         )
+        # 修改内容区域的位置和大小
+        self.widget.resize(self.main_widget.width()*9 // 10, self.main_widget.height()*7 // 10)
+        self.widget.move(
+            self.width()//2 - self.widget.width()//2,
+            self.height()//2 - self.widget.height()//2
+        )
+        # 修改按钮的位置和大小
+        for index, button in enumerate(self.button_list):
+            margin = self.button_block_size.height() // 6
+            button_size = QSize(
+                self.main_widget.width() // 8,
+                self.button_block_size.height() - 2*margin
+            )
+            if button_size.height() >= 40:
+                button_size = QSize(button_size.width(), 40)
+            button.resize(button_size)
+            button.move(
+                self.width()//2 + self.main_widget.width()//2 - (index+1)*margin - button_size.width(),
+                self.height()//2 + self.main_widget.height()//2 -\
+                self.button_block_size.height()//2 - button_size.height()//2
+            )
 
-    def slot_btn_click(self) -> None:
+    def add_button(self, button: Button) -> None:
         """
-        点击确认按钮
+        添加按钮
         """
-        self.close()
+        self.button_list.append(button)
+        button.setParent(self)
+        self.resize_widgets()
+
+    def set_title(self, title: str) -> None:
+        """
+        设置标题
+        """
+        self.title.setText(title)
+
+    def set_widget(self, widget: QWidget) -> None:
+        """
+        设置内容区域的控件
+        """
+        layout = VLayout()
+        layout.addWidget(widget)
+        self.widget.setLayout(layout)
 
     def paintEvent(self, event: QPaintEvent) -> None:
         """
@@ -218,11 +271,33 @@ class TableModal(QWidget):
         painter.setBrush(background)
         painter.setPen(Qt.transparent)
         painter.drawRoundedRect(
-            self.width()//2 - self.main_width//2, self.height()//2 - self.main_height//2,
-            self.main_width, self.main_height,
+            self.width()//2 - self.main_widget.width()//2, self.height()//2 - self.main_widget.height()//2,
+            self.main_widget.width(), self.main_widget.height(),
             10, 10
         )
+        # 绘制两条分割线
+        divider = QColor("#EFEFEF")
+        painter.setPen(divider)
+        painter.setBrush(Qt.transparent)
+        painter.drawLine(
+            self.width()//2 - self.main_widget.width()//2,
+            self.height()//2 - self.main_widget.height()//2 + self.title_block_size.height(),
+            self.width()//2 + self.main_widget.width()//2,
+            self.height()//2 - self.main_widget.height()//2 + self.title_block_size.height(),
+        )
+        painter.drawLine(
+            self.width()//2 - self.main_widget.width()//2,
+            self.height()//2 - self.main_widget.height()//2 + self.main_widget.height()-self.button_block_size.height(),
+            self.width()//2 + self.main_widget.width()//2,
+            self.height()//2 - self.main_widget.height()//2 + self.main_widget.height()-self.button_block_size.height(),
+        )
         painter.end()
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        """
+        窗口大小变化事件
+        """
+        self.resize_widgets()
 
 
 class Sidebar(QWidget):
