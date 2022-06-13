@@ -10,7 +10,7 @@ from config import config
 from typing import Dict, Any
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QResizeEvent
 from widgets.Base import Shadow, Button, Sidebar, Table
 
 
@@ -94,6 +94,14 @@ class Teacher(QWidget):
         self.sidebar.add_widget(self.btn_teach_info)
         self.sidebar.add_widget(self.btn_user_info)
         self.sidebar.add_widget(self.btn_logout)
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        """
+        重绘大小事件
+        """
+        self.sidebar.resize(QSize(self.width() // 5, self.height()))
+        self.table.move(self.sidebar.width() + 20, 20)
+        self.table.setFixedSize(self.width() - self.sidebar.width() - 2 * 20, self.height() - 2 * 20)
 
     @staticmethod
     def get_btn_detail() -> Button:

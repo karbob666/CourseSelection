@@ -9,7 +9,7 @@
 from PyQt5.QtWidgets import QWidget
 from config import config
 from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QResizeEvent
 from widgets.Base import Sidebar, Button, Shadow, Table
 
 
@@ -101,6 +101,14 @@ class Admin(QWidget):
         self.sidebar.add_widget(self.btn_course_manage)
         self.sidebar.add_widget(self.btn_teacher_manage)
         self.sidebar.add_widget(self.btn_logout)
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        """
+        重绘大小事件
+        """
+        self.sidebar.resize(QSize(self.width() // 5, self.height()))
+        self.table.move(self.sidebar.width() + 20, 20)
+        self.table.setFixedSize(self.width() - self.sidebar.width() - 2 * 20, self.height() - 2 * 20)
 
     @staticmethod
     def get_btn_modify() -> Button:

@@ -402,9 +402,10 @@ class InputModal(Modal):
         layout = VLayout()
         for label_text, input_text in zip(labels, inputs):
             temp_layout = HLayout()
+            temp_layout.addStretch(1)
             # 左边的label
             label = QLabel()
-            label.setText(f"{label_text}：")
+            label.setText(f"{label_text}:  ")
             label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             label.setStyleSheet("""
             QWidget {
@@ -416,6 +417,7 @@ class InputModal(Modal):
             _input = Input()
             _input.setText(input_text)
             temp_layout.addWidget(_input)
+            temp_layout.addStretch(1)
             # 添加布局
             layout.addLayout(temp_layout)
             # 添加到列表
@@ -429,8 +431,8 @@ class InputModal(Modal):
         重新设置控件大小
         """
         for label, _input in zip(self.label_list, self.input_list):
-            label.setFixedSize(self.widget.width() // 5, 40)
-            _input.setFixedSize(self.widget.width()*4 // 5, 40)
+            label.setFixedSize(self.widget.width() // 6, 40)
+            _input.setFixedSize(self.widget.width()*3 // 5, 40)
 
     def label_at(self, index: int) -> QLabel:
         """
@@ -444,6 +446,13 @@ class InputModal(Modal):
         """
         return self.input_list[index]
 
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        """
+        重绘大小事件
+        """
+        super().resizeEvent(event)
+        self.resize_content()
+
 
 class Sidebar(QWidget):
 
@@ -452,11 +461,11 @@ class Sidebar(QWidget):
 
     def __init__(self, width: int, height: int, *args, **kwargs) -> None:
         super(Sidebar, self).__init__(*args, **kwargs)
-        self.resize(width, height)
+        self.resize(QSize(width, height))
         # 背景
-        background = QLabel(self)
-        background.setFixedSize(width, height)
-        background.setStyleSheet("""
+        self.background = QLabel(self)
+        self.background.setFixedSize(width, height)
+        self.background.setStyleSheet("""
         QWidget {
             background: rgba(255, 255, 255, 255);
             border-top-right-radius: 30px;
@@ -472,6 +481,16 @@ class Sidebar(QWidget):
         添加控件到侧边栏
         """
         self.layout.addWidget(widget, 1, Qt.AlignCenter)
+
+    def resize(self, size: QSize) -> None:
+        """
+        重绘大小
+        """
+        if size.width() >= 300:
+            size = QSize(300, size.height())
+        if hasattr(self, "background"):
+            self.background.setFixedSize(size)
+        super().resize(size)
 
 
 class MsConnectThread(QRunnable):

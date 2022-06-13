@@ -16,7 +16,7 @@ from widgets.Admin import Admin
 from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout, Modal, Table, InputModal
 from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtGui import QCloseEvent, QResizeEvent
 
 
 class MainWindow(QWidget):
@@ -491,6 +491,17 @@ class MainWindow(QWidget):
         self.teacher.btn_logout.clicked.connect(self.slot_teacher_btn_logout_click)
         self.admin.btn_student_manage.clicked.connect(self.slot_admin_btn_student_manage_click)
         self.admin.btn_logout.clicked.connect(self.slot_admin_btn_logout_click)
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        """
+        重绘制窗口事件
+        """
+        self.login.resize(event.size())
+        self.student.resize(event.size())
+        self.teacher.resize(event.size())
+        self.admin.resize(event.size())
+        if hasattr(self, "modal") and self.modal:
+            self.modal.resize(event.size())
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """

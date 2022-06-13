@@ -10,7 +10,7 @@
 from config import config
 from PyQt5.QtWidgets import QWidget, QLabel, QLineEdit
 from PyQt5.QtCore import Qt, QRect
-from PyQt5.QtGui import QPaintEvent, QPainter, QColor, QPixmap
+from PyQt5.QtGui import QPaintEvent, QPainter, QColor, QPixmap, QResizeEvent
 from widgets.Base import Input, Button, RadioButton, Shadow, HLayout, VLayout
 
 
@@ -25,9 +25,7 @@ class Login(QWidget):
     rb_student: RadioButton
     rb_teacher: RadioButton
     rb_admin: RadioButton
-
-    FORM_WIDTH = 800
-    FORM_HEIGHT = 600
+    form_widget: QWidget
 
     def __init__(self, parent=None) -> None:
         super(Login, self).__init__(parent)
@@ -52,6 +50,13 @@ class Login(QWidget):
             outline: none;
         }
         """
+
+        # 表单控件
+        self.form_widget = QWidget(parent=self)
+        self.form_widget.resize(800, 600)
+        self.form_widget.move(
+            self.width()//2 - self.form_widget.width()//2, self.height()//2 - self.form_widget.height()//2,
+        )
 
         # 标题
         self.label_title = QLabel()
@@ -118,25 +123,30 @@ class Login(QWidget):
         初始化布局
         """
         layout = VLayout()
-        layout.setGeometry(QRect(
-            self.width()//2 - self.FORM_WIDTH//2,
-            self.height()//2 - self.FORM_HEIGHT//2,
-            self.FORM_WIDTH,
-            self.FORM_HEIGHT
-        ))
-        layout.setAlignment(Qt.AlignHCenter)
-
-        layout.addWidget(self.label_title, 4, Qt.AlignCenter)
-        layout.addWidget(self.input_user_name, 1, Qt.AlignCenter)
+        layout.addStretch(1)
+        layout.addWidget(self.label_title, 1, Qt.AlignCenter)
+        layout.addStretch(2)
+        layout.addWidget(self.input_user_name, 2, Qt.AlignCenter)
         layout.addWidget(self.input_password, 1, Qt.AlignCenter)
         temp_layout = HLayout()
-        temp_layout.addWidget(self.rb_student, 0, Qt.AlignCenter)
-        temp_layout.addWidget(self.rb_teacher, 0, Qt.AlignCenter)
-        temp_layout.addWidget(self.rb_admin, 0, Qt.AlignCenter)
-        layout.addLayout(temp_layout, 1)
-        layout.addWidget(self.btn_login, 2, Qt.AlignCenter)
+        temp_layout.addStretch(2)
+        temp_layout.addWidget(self.rb_student, 1, Qt.AlignCenter)
+        temp_layout.addWidget(self.rb_teacher, 1, Qt.AlignCenter)
+        temp_layout.addWidget(self.rb_admin, 1, Qt.AlignCenter)
+        temp_layout.addStretch(2)
+        layout.addLayout(temp_layout, 2)
         layout.addStretch(1)
-        self.setLayout(layout)
+        layout.addWidget(self.btn_login, 1, Qt.AlignCenter)
+        layout.addStretch(1)
+        self.form_widget.setLayout(layout)
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        """
+        重绘大小事件
+        """
+        self.form_widget.move(
+            self.width()//2 - self.form_widget.width()//2, self.height()//2 - self.form_widget.height()//2,
+        )
 
     def paintEvent(self, event: QPaintEvent) -> None:
         """
@@ -154,8 +164,8 @@ class Login(QWidget):
         painter.setBrush(QColor(255, 255, 255, 200))
         painter.setPen(Qt.transparent)
         painter.drawRoundedRect(
-            self.width()//2 - self.FORM_WIDTH//2, self.height()//2 - self.FORM_HEIGHT//2,
-            self.FORM_WIDTH, self.FORM_HEIGHT,
+            self.width()//2 - self.form_widget.width()//2, self.height()//2 - self.form_widget.height()//2,
+            self.form_widget.width(), self.form_widget.height(),
             10, 10,
         )
         painter.end()
