@@ -16,9 +16,9 @@ from widgets.Base import Sidebar, Button, Shadow, Table
 class Admin(QWidget):
 
     sidebar: Sidebar
-    btn_student_info: Button
-    btn_course_info: Button
-    btn_teach_info: Button
+    btn_student_manage: Button
+    btn_teacher_manage: Button
+    btn_course_manage: Button
     btn_logout: Button
     table: Table
 
@@ -60,26 +60,26 @@ class Admin(QWidget):
         }
         """
 
-        # 学生信息按钮
-        self.btn_student_info = Button()
-        self.btn_student_info.setText("学生信息")
-        self.btn_student_info.setFixedSize(btn_sidebar_size)
-        self.btn_student_info.setStyleSheet(btn_sidebar_stylesheet)
-        self.btn_student_info.setGraphicsEffect(Shadow(0, 0, 20))
+        # 学生管理按钮
+        self.btn_student_manage = Button()
+        self.btn_student_manage.setText("学生管理")
+        self.btn_student_manage.setFixedSize(btn_sidebar_size)
+        self.btn_student_manage.setStyleSheet(btn_sidebar_stylesheet)
+        self.btn_student_manage.setGraphicsEffect(Shadow(0, 0, 20))
 
-        # 课程信息按钮
-        self.btn_course_info = Button()
-        self.btn_course_info.setText("课程信息")
-        self.btn_course_info.setFixedSize(btn_sidebar_size)
-        self.btn_course_info.setStyleSheet(btn_sidebar_stylesheet)
-        self.btn_course_info.setGraphicsEffect(Shadow(0, 0, 20))
+        # 教师管理按钮
+        self.btn_teacher_manage = Button()
+        self.btn_teacher_manage.setText("教师管理")
+        self.btn_teacher_manage.setFixedSize(btn_sidebar_size)
+        self.btn_teacher_manage.setStyleSheet(btn_sidebar_stylesheet)
+        self.btn_teacher_manage.setGraphicsEffect(Shadow(0, 0, 20))
 
-        # 授课信息按钮
-        self.btn_teach_info = Button()
-        self.btn_teach_info.setText("授课信息")
-        self.btn_teach_info.setFixedSize(btn_sidebar_size)
-        self.btn_teach_info.setStyleSheet(btn_sidebar_stylesheet)
-        self.btn_teach_info.setGraphicsEffect(Shadow(0, 0, 20))
+        # 课程管理
+        self.btn_course_manage = Button()
+        self.btn_course_manage.setText("课程管理")
+        self.btn_course_manage.setFixedSize(btn_sidebar_size)
+        self.btn_course_manage.setStyleSheet(btn_sidebar_stylesheet)
+        self.btn_course_manage.setGraphicsEffect(Shadow(0, 0, 20))
 
         # 退出登录按钮
         self.btn_logout = Button()
@@ -97,7 +97,7 @@ class Admin(QWidget):
         """
         初始化布局
         """
-        self.sidebar.add_widget(self.btn_student_info)
-        self.sidebar.add_widget(self.btn_course_info)
-        self.sidebar.add_widget(self.btn_teach_info)
+        self.sidebar.add_widget(self.btn_student_manage)
+        self.sidebar.add_widget(self.btn_course_manage)
+        self.sidebar.add_widget(self.btn_teacher_manage)
         self.sidebar.add_widget(self.btn_logout)
