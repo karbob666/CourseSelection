@@ -56,6 +56,19 @@ class Button(QPushButton):
         super(Button, self).__init__(*args, **kwargs)
         self.setContentsMargins(0, 0, 0, 0)
         self.setCursor(Qt.PointingHandCursor)
+        self.setStyleSheet("""
+        QWidget {
+            border: 0;
+            outline: none;
+            color: #FFF;
+            font-size: 18px;
+            border-radius: 3px;
+            background: rgba(64, 169, 255, 255);
+        }
+        QWidget:hover {
+            background: rgba(64, 169, 255, 200);
+        }
+        """)
 
     def init_animation(self) -> None:
         """
