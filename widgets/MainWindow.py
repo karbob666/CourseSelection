@@ -534,7 +534,7 @@ class MainWindow(QWidget):
             return
 
         if not data:
-            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            QMessageBox.information(self, "提示", "该课程还没有授课老师！", QMessageBox.Ok)
             return
 
         # 添加数据
