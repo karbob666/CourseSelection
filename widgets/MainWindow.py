@@ -84,6 +84,7 @@ class MainWindow(QWidget):
         """
         user_name = self.login.input_user_name.text()
         password = self.login.input_password.text()
+        self.login.btn_login.set_loading(True)
         if self.login.rb_student.isChecked():
             sql = f"SELECT * FROM Student WHERE 学号='{user_name}' AND 密码='{password}'"
             thread = MsSQLThread(self.connection, sql)
@@ -103,6 +104,7 @@ class MainWindow(QWidget):
             self.login.hide()
         else:
             QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
+        self.login.btn_login.set_loading(False)
 
     def slot_student_login_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         if not data:
@@ -111,6 +113,7 @@ class MainWindow(QWidget):
             self.login.hide()
             self.student.show()
             self.student.user_data = {k: str(v).strip().encode("latin1").decode("gbk") for k, v in data[0].items()}
+        self.login.btn_login.set_loading(False)
 
     def slot_student_fetchall_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         """
@@ -276,6 +279,7 @@ class MainWindow(QWidget):
             self.login.hide()
             self.teacher.show()
             self.teacher.user_data = {k: str(v).strip().encode("latin1").decode("gbk") for k, v in data[0].items()}
+        self.login.btn_login.set_loading(False)
 
     def slot_teacher_teach_info_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         """
