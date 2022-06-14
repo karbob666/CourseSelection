@@ -452,7 +452,7 @@ class MainWindow(QWidget):
                     button = self.admin.get_btn_modify()
                     button.setObjectName(str(row))
                     button.setText("添加")
-                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    button.clicked.connect(self.slot_admin_table_btn_course_manage_insert_click)
                     widget = QWidget()
                     layout = HLayout()
                     layout.setAlignment(Qt.AlignCenter)
@@ -501,6 +501,18 @@ class MainWindow(QWidget):
         # 关闭模态框
         self.modal.close()
 
+    def slot_admin_modal_course_manage_insert_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        课程管理表中添加按钮弹出的模态框完成按钮数据的信号槽
+        """
+        if not data:
+            QMessageBox.critical(self, "错误", "添加失败")
+            return
+        # 刷新数据表
+        self.slot_admin_btn_course_manage_click()
+        self.modal.close()
+
     def slot_admin_table_course_manage_delete_data(self, data: Optional[bool]) -> None:
         """
         管理员
@@ -543,6 +555,35 @@ class MainWindow(QWidget):
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_modal_student_manage_data)
         self.thread_pool.start(thread)
+
+    def slot_admin_modal_btn_course_manage_insert_click(self) -> None:
+        """
+        管理员
+        课程管理中点击添加按钮弹出的模态框中完成按钮的数据
+        """
+        data = [_input.text() for _input in self.modal.input_list]
+        sql = "INSERT INTO Course VALUES('{}', '{}')".format(*data[:2])
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_modal_course_manage_insert_data)
+        self.thread_pool.start(thread)
+
+    def slot_admin_table_btn_course_manage_insert_click(self) -> None:
+        """
+        管理员
+        课程管理表中添加按钮的信号槽
+        """
+        row = int(self.admin.sender().objectName())
+        self.admin.table.row = row
+        header = [self.admin.table.horizontalHeaderItem(i).text() for i in range(self.admin.table.columnCount())]
+        header = list(filter(lambda x: len(x) > 0, header))
+        items = ["" for _ in range(len(header))]
+        items[-1] = "0"
+        self.modal = InputModal(self.width(), self.height(), parent=self)
+        self.modal.set_title("添加课程")
+        self.modal.set_content(header, items)
+        self.modal.input_at(-1).setReadOnly(True)
+        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_course_manage_insert_click)
+        self.modal.show()
 
     def slot_admin_table_btn_course_manage_delete_click(self) -> None:
         """
