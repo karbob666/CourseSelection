@@ -10,9 +10,23 @@ import pymssql
 import multiprocessing
 from typing import List
 from pymssql import Connection, Cursor, Error
-from PyQt5.QtGui import QColor, QPainter, QPaintEvent, QFontMetrics, QCursor, QResizeEvent, QFocusEvent
-from PyQt5.QtCore import Qt, pyqtSignal, QThreadPool, QRunnable, QObject, QModelIndex, QSize, QEvent
-from PyQt5.QtWidgets import (
+from PyQt5.Qt import (
+    QColor,
+    QPainter,
+    QPaintEvent,
+    QResizeEvent,
+    QFocusEvent,
+    QCursor,
+    QFontMetrics,
+    Qt,
+    pyqtSignal,
+    QObject,
+    QRunnable,
+    QThreadPool,
+    QSize,
+    QModelIndex,
+    QSequentialAnimationGroup,
+    QPropertyAnimation,
     QWidget,
     QLabel,
     QToolTip,
@@ -29,15 +43,74 @@ from PyQt5.QtWidgets import (
     QStyle,
     QStyledItemDelegate,
     QStyleOptionViewItem,
+    QGraphicsOpacityEffect,
 )
 
 
 class Button(QPushButton):
 
+    animation: QSequentialAnimationGroup
+    last_text: str
+
     def __init__(self, *args, **kwargs) -> None:
         super(Button, self).__init__(*args, **kwargs)
         self.setContentsMargins(0, 0, 0, 0)
         self.setCursor(Qt.PointingHandCursor)
+
+    def init_animation(self) -> None:
+        """
+        初始化动画
+        """
+        # 三个点的加载动画
+        layout = QHBoxLayout()
+        layout.addStretch(1)
+        for i in range(3):
+            dot = QLabel(parent=self)
+            effect = QGraphicsOpacityEffect()
+            effect.setOpacity(0.2)
+            dot.setGraphicsEffect(effect)
+            dot.setFixedSize(QSize(8, 8))
+            dot.setStyleSheet("""
+            QWidget {
+                font-size: 18px;
+                border-radius: 4px;
+                background: rgba(255, 255, 255, 255);
+            }
+            """)
+            layout.addWidget(dot, 0, Qt.AlignCenter)
+            setattr(self, f"dot{i}", dot)
+            setattr(self, f"effect{i}", effect)
+        layout.addStretch(1)
+        self.setLayout(layout)
+
+        # 添加串行动画组
+        self.animation = QSequentialAnimationGroup(parent=self)
+        for i in range(3):
+            effect = getattr(self, f"effect{i}")
+            animation = QPropertyAnimation(effect, b"opacity")
+            animation.setDuration(500)
+            animation.setKeyValueAt(0, 0.2)
+            animation.setKeyValueAt(0.5, 1)
+            animation.setKeyValueAt(1, 0.2)
+            self.animation.addAnimation(animation)
+        self.animation.setLoopCount(-1)
+        self.last_text = str()
+
+    def set_loading(self, loading: bool) -> None:
+        """
+        设置加载动画
+        """
+        if not loading and not hasattr(self, "animation"):
+            return
+        if not hasattr(self, "animation"):
+            self.init_animation()
+        for i in range(3):
+            dot = getattr(self, f"dot{i}")
+            dot.show() if loading else dot.hide()
+        last_text = self.text()
+        self.setText(self.last_text)
+        self.last_text = last_text
+        self.animation.start() if loading else self.animation.stop()
 
 
 class RadioButton(QRadioButton):
