@@ -635,7 +635,7 @@ class MsSQLThread(QRunnable):
             elif "INSERT" == self.sql[:6].upper():
                 cursor.execute(self.sql)
                 self.connection.commit()
-                self.data_signal.emit(cursor.lastrowid)
+                self.data_signal.emit(True)
             else:
                 cursor.execute(self.sql)
                 self.connection.commit()
