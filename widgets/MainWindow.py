@@ -657,7 +657,10 @@ class MainWindow(QWidget):
         管理员
         课程管理中点击添加按钮弹出的模态框中完成按钮的数据
         """
-        data = [_input.text() for _input in self.modal.input_list]
+        data = [_input.text().strip() for _input in self.modal.input_list]
+        if not data[0]:
+            QMessageBox.critical(self, "错误", "课程号不能为空")
+            return
         sql = "INSERT INTO Course VALUES('{}', '{}')".format(*data[:2])
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_modal_course_manage_insert_data)
