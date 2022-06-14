@@ -414,31 +414,75 @@ class MainWindow(QWidget):
                 item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
                 self.admin.table.setItem(row, column, item)
 
-    def slot_admin_table_btn_student_manage_modify_click(self) -> None:
+    def slot_admin_course_manage_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
         """
         管理员
-        学生管理表格中点击修改按钮的信号槽
+        查询课程管理数据的信号槽
         """
-        row = int(self.admin.table.sender().objectName())
-        self.admin.table.row = row
-        header = [self.admin.table.horizontalHeaderItem(i).text() for i in range(self.admin.table.columnCount()-1)]
-        items = [self.admin.table.item(row, column).text() for column in range(self.admin.table.columnCount()-1)]
-        self.modal = InputModal(self.width(), self.height(), parent=self)
-        self.modal.set_content(header, items)
-        self.modal.set_title("学生管理")
-        self.modal.input_at(0).setReadOnly(True)
-        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_student_manage_click)
-        self.modal.show()
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
 
-    def slot_admin_btn_student_manage_click(self) -> None:
-        """
-        管理员
-        点击学生管理按钮的信号槽
-        """
-        sql = "SELECT 学号,姓名,性别,年龄,专业名,密码,备注 FROM Student"
-        thread = MsSQLThread(self.connection, sql)
-        thread.data_signal.connect(self.slot_admin_student_manage_data)
-        self.thread_pool.start(thread)
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        header = list(data[0].keys())
+        header.extend([""] * 4)
+        self.admin.table.clear()
+        self.admin.table.setRowCount(len(data))
+        self.admin.table.setColumnCount(len(header))
+        self.admin.table.setHorizontalHeaderLabels(header)
+        for row, student_info in enumerate(data):
+            for column, item in enumerate(student_info.values()):
+                # 最后一列添加操作按钮
+                if column+1 >= self.admin.table.columnCount()-4:
+                    # 管理按钮
+                    button = self.admin.get_btn_modify()
+                    button.setObjectName(str(row))
+                    button.setText("管理")
+                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    widget = QWidget()
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    self.admin.table.setCellWidget(row, column+1, widget)
+                    # 添加课程
+                    button = self.admin.get_btn_modify()
+                    button.setObjectName(str(row))
+                    button.setText("添加")
+                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    widget = QWidget()
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    self.admin.table.setCellWidget(row, column+2, widget)
+                    # 修改课程
+                    button = self.admin.get_btn_modify()
+                    button.setObjectName(str(row))
+                    button.setText("修改")
+                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    widget = QWidget()
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    self.admin.table.setCellWidget(row, column+3, widget)
+                    # 删除课程
+                    button = self.admin.get_btn_delete()
+                    button.setObjectName(str(row))
+                    button.clicked.connect(self.slot_admin_table_btn_course_manage_delete_click)
+                    widget = QWidget()
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    self.admin.table.setCellWidget(row, column+4, widget)
+
+                item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
+                self.admin.table.setItem(row, column, item)
 
     def slot_admin_modal_student_manage_data(self, data: Optional[bool]) -> None:
         """
@@ -457,6 +501,34 @@ class MainWindow(QWidget):
         # 关闭模态框
         self.modal.close()
 
+    def slot_admin_table_course_manage_delete_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        课程管理表中删除数据按钮的信号槽
+        """
+        if not data:
+            QMessageBox.critical(self, "错误", "删除失败", QMessageBox.Ok)
+            return
+        # 删除表格数据
+        row = self.admin.table.row
+        self.admin.table.removeRow(row)
+
+    def slot_admin_table_btn_student_manage_modify_click(self) -> None:
+        """
+        管理员
+        学生管理表格中点击修改按钮的信号槽
+        """
+        row = int(self.admin.table.sender().objectName())
+        self.admin.table.row = row
+        header = [self.admin.table.horizontalHeaderItem(i).text() for i in range(self.admin.table.columnCount()-1)]
+        items = [self.admin.table.item(row, column).text() for column in range(self.admin.table.columnCount()-1)]
+        self.modal = InputModal(self.width(), self.height(), parent=self)
+        self.modal.set_content(header, items)
+        self.modal.set_title("学生管理")
+        self.modal.input_at(0).setReadOnly(True)
+        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_student_manage_click)
+        self.modal.show()
+
     def slot_admin_modal_btn_student_manage_click(self) -> None:
         """
         管理员
@@ -470,6 +542,41 @@ class MainWindow(QWidget):
         sql = "UPDATE Student SET 姓名='{}',性别='{}',年龄='{}',专业名='{}',密码='{}',备注='{}' WHERE 学号='{}'".format(*data)
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_modal_student_manage_data)
+        self.thread_pool.start(thread)
+
+    def slot_admin_table_btn_course_manage_delete_click(self) -> None:
+        """
+        管理员
+        课程管理表中点击删除按钮的信号槽
+        """
+        choice = QMessageBox.warning(self, "警告", "你确定要删除吗？", QMessageBox.Ok | QMessageBox.Cancel)
+        if choice == QMessageBox.Ok:
+            row = int(self.admin.table.sender().objectName())
+            self.admin.table.row = row
+            course_id = self.admin.table.item(row, 0).text()
+            sql = f"DELETE FROM Course WHERE 课程号={course_id}"
+            thread = MsSQLThread(self.connection, sql)
+            thread.data_signal.connect(self.slot_admin_table_course_manage_delete_data)
+            self.thread_pool.start(thread)
+
+    def slot_admin_btn_student_manage_click(self) -> None:
+        """
+        管理员
+        点击学生管理按钮的信号槽
+        """
+        sql = "SELECT 学号,姓名,性别,年龄,专业名,密码,备注 FROM Student"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_student_manage_data)
+        self.thread_pool.start(thread)
+
+    def slot_admin_btn_course_manage_click(self) -> None:
+        """
+        管理员
+        点击课程管理按钮的信号槽
+        """
+        sql = "SELECT 课程号,课程名,选课人数 FROM Course_stu"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_course_manage_data)
         self.thread_pool.start(thread)
 
     def slot_admin_btn_logout_click(self) -> None:
@@ -494,6 +601,7 @@ class MainWindow(QWidget):
         self.teacher.btn_teach_info.clicked.connect(self.slot_teacher_btn_teach_info_click)
         self.teacher.btn_logout.clicked.connect(self.slot_teacher_btn_logout_click)
         self.admin.btn_student_manage.clicked.connect(self.slot_admin_btn_student_manage_click)
+        self.admin.btn_course_manage.clicked.connect(self.slot_admin_btn_course_manage_click)
         self.admin.btn_logout.clicked.connect(self.slot_admin_btn_logout_click)
 
     def resizeEvent(self, event: QResizeEvent) -> None:
