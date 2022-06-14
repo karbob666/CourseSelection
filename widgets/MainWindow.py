@@ -463,7 +463,7 @@ class MainWindow(QWidget):
                     button = self.admin.get_btn_modify()
                     button.setObjectName(str(row))
                     button.setText("修改")
-                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    button.clicked.connect(self.slot_admin_table_btn_course_manage_modify_click)
                     widget = QWidget()
                     layout = HLayout()
                     layout.setAlignment(Qt.AlignCenter)
@@ -508,6 +508,17 @@ class MainWindow(QWidget):
         """
         if not data:
             QMessageBox.critical(self, "错误", "添加失败")
+            return
+        # 刷新数据表
+        self.slot_admin_btn_course_manage_click()
+        self.modal.close()
+
+    def slot_admin_modal_course_manage_modify_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        """
+        if not data:
+            QMessageBox.critical(self, "错误", "修改失败")
             return
         # 刷新数据表
         self.slot_admin_btn_course_manage_click()
@@ -567,6 +578,18 @@ class MainWindow(QWidget):
         thread.data_signal.connect(self.slot_admin_modal_course_manage_insert_data)
         self.thread_pool.start(thread)
 
+    def slot_admin_modal_btn_course_manage_modify_click(self) -> None:
+        """
+        管理员
+        课程管理表中修改按钮弹出的模态框的完成按钮的信号槽
+        """
+        data = [_input.text() for _input in self.modal.input_list]
+        data = data[::-1][-2:]
+        sql = "UPDATE Course SET 课程名='{}' WHERE 课程号='{}'".format(*data)
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_modal_course_manage_modify_data)
+        self.thread_pool.start(thread)
+
     def slot_admin_table_btn_course_manage_insert_click(self) -> None:
         """
         管理员
@@ -583,6 +606,24 @@ class MainWindow(QWidget):
         self.modal.set_content(header, items)
         self.modal.input_at(-1).setReadOnly(True)
         self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_course_manage_insert_click)
+        self.modal.show()
+
+    def slot_admin_table_btn_course_manage_modify_click(self) -> None:
+        """
+        管理员
+        课程管理表中修改按钮的信号槽
+        """
+        row = int(self.admin.sender().objectName())
+        self.admin.table.row = row
+        header = [self.admin.table.horizontalHeaderItem(i).text() for i in range(self.admin.table.columnCount())]
+        header = list(filter(lambda x: len(x) > 0, header))
+        items = [self.admin.table.item(row, column).text() for column in range(len(header))]
+        self.modal = InputModal(self.width(), self.height(), parent=self)
+        self.modal.set_title("修改课程")
+        self.modal.set_content(header, items)
+        self.modal.input_at(0).setReadOnly(True)
+        self.modal.input_at(-1).setReadOnly(True)
+        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_course_manage_modify_click)
         self.modal.show()
 
     def slot_admin_table_btn_course_manage_delete_click(self) -> None:
