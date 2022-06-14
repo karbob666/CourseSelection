@@ -132,3 +132,26 @@ class Admin(QWidget):
         }
         """)
         return button
+
+    @staticmethod
+    def get_btn_delete() -> Button:
+        """
+        获取删除按钮
+        """
+        button = Button()
+        button.setText("删除")
+        button.setFixedSize(80, 30)
+        button.setStyleSheet("""
+        QWidget {
+            font-size: 18px;
+            border: 0;
+            outline: none;
+            color: #FFF;
+            border-radius: 3px;
+            background: rgba(255, 77, 79, 255);
+        }
+        QWidget:hover {
+            background: rgba(255, 77, 79, 200);
+        }
+        """)
+        return button
