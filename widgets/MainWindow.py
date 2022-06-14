@@ -441,7 +441,7 @@ class MainWindow(QWidget):
                     button = self.admin.get_btn_modify()
                     button.setObjectName(str(row))
                     button.setText("管理")
-                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    button.clicked.connect(self.slot_admin_table_btn_course_manage_student_click)
                     widget = QWidget()
                     layout = HLayout()
                     layout.setAlignment(Qt.AlignCenter)
@@ -524,6 +524,91 @@ class MainWindow(QWidget):
         self.slot_admin_btn_course_manage_click()
         self.modal.close()
 
+    def slot_admin_table_course_manage_student_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
+        """
+        管理员
+        课程管理表中管理按钮数据的信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        # 添加数据
+        table = Table()
+        header = data[0].keys()
+        table.setRowCount(len(data))
+        table.setColumnCount(len(header))
+        table.setHorizontalHeaderLabels(header)
+        for row, student_info in enumerate(data):
+            for column, item in enumerate(student_info.values()):
+                if column+1 == table.columnCount():
+                    # 表格内的按钮
+                    button = self.student.get_btn_select_course() if str(item) == "0" \
+                             else self.student.get_btn_cancel_course()
+                    button.setObjectName(str(row))
+                    button.clicked.connect(self.slot_admin_modal_btn_course_manage_student_click)
+                    # 空白widget, 使按钮在表格中居中
+                    widget = QWidget()
+                    widget.setObjectName(str(item))
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    # 表格最后一行添加按钮
+                    table.setCellWidget(row, column, widget)
+                    continue
+                item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
+                table.setItem(row, column, item)
+        self.modal = Modal(self.width(), self.height(), parent=self)
+        self.modal.set_title("学生课程管理")
+        self.modal.set_widget(table)
+        self.modal.show()
+        setattr(self.modal, "table", table)
+
+    def slot_admin_modal_course_manage_student_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        课程管理表中管理按钮弹出的模态框中 选课/退选 按钮数据的信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        # 获取按钮所在行和列
+        table: Table = getattr(self.modal, "table")
+        row = table.row
+        column = table.columnCount() - 1
+        # 获取按钮所在的控件上
+        widget: QWidget = table.cellWidget(row, column)
+        # 切换按钮
+        if widget.objectName() == "0":
+            button = self.student.get_btn_cancel_course()
+            widget = QWidget()
+            widget.setObjectName("1")
+            item = QTableWidgetItem(str(int(self.admin.table.item(self.admin.table.row, 2).text()) + 1))
+            self.admin.table.setItem(self.admin.table.row, 2, item)
+        else:
+            button = self.student.get_btn_select_course()
+            widget = QWidget()
+            widget.setObjectName("0")
+            item = QTableWidgetItem(str(int(self.admin.table.item(self.admin.table.row, 2).text()) - 1))
+            self.admin.table.setItem(self.admin.table.row, 2, item)
+        button.setObjectName(str(row))
+        button.clicked.connect(self.slot_admin_modal_btn_course_manage_student_click)
+        layout = HLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        layout.addWidget(button)
+        widget.setLayout(layout)
+        table.setCellWidget(row, column, widget)
+
     def slot_admin_table_course_manage_delete_data(self, data: Optional[bool]) -> None:
         """
         管理员
@@ -588,6 +673,37 @@ class MainWindow(QWidget):
         sql = "UPDATE Course SET 课程名='{}' WHERE 课程号='{}'".format(*data)
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_modal_course_manage_modify_data)
+        self.thread_pool.start(thread)
+
+    def slot_admin_table_btn_course_manage_student_click(self) -> None:
+        """
+        管理员
+        课程管理表中管理按钮的信号槽
+        主要用于管理学生的选课
+        """
+        row = int(self.admin.table.sender().objectName())
+        self.admin.table.row = row
+        course_id = self.admin.table.item(row, 0).text()
+        sql = f"SELECT 学号,姓名,专业名,选课管理 AS 操作 FROM Course_stuinfo('{course_id}')"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_table_course_manage_student_data)
+        self.thread_pool.start(thread)
+
+    def slot_admin_modal_btn_course_manage_student_click(self) -> None:
+        """
+        管理员
+        课程管理表中管理按钮弹出的模态框中 选课/退选 按钮的信号槽
+        """
+        # 获取学号和课程号
+        row = int(self.modal.sender().objectName())
+        table: Table = getattr(self.modal, "table")
+        table.row = row
+        user_id = table.item(row, 0).text()
+        course_id = self.admin.table.item(self.admin.table.row, 0).text()
+        # 执行sql
+        sql = f"exec Choose_or_not '{user_id}','{course_id}'"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_modal_course_manage_student_data)
         self.thread_pool.start(thread)
 
     def slot_admin_table_btn_course_manage_insert_click(self) -> None:
