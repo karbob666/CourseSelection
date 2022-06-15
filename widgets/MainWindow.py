@@ -534,13 +534,25 @@ class MainWindow(QWidget):
                 item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
                 self.admin.table.setItem(row, column, item)
 
-    def slot_admin_modal_student_manage_data(self, data: Optional[bool]) -> None:
+    def slot_admin_modal_student_manage_insert_data(self, data: Optional[bool]) -> None:
         """
         管理员
-        学生管理模态框中的完成按钮返回数据的信号槽
+        学生管理添加按钮弹出的模态框中完成按钮返回数据的信号槽
         """
         if not data:
-            QMessageBox.critical(self, "错误", "修改信息发生错误", QMessageBox.Ok)
+            QMessageBox.critical(self, "错误", "修改失败", QMessageBox.Ok)
+            return
+        # 刷新数据表
+        self.slot_admin_btn_student_manage_click()
+        self.modal.close()
+
+    def slot_admin_modal_student_manage_modify_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        学生管理修改按钮弹出的模态框中的完成按钮返回数据的信号槽
+        """
+        if not data:
+            QMessageBox.critical(self, "错误", "修改失败", QMessageBox.Ok)
             return
 
         # 修改表格中数据
@@ -671,6 +683,18 @@ class MainWindow(QWidget):
         row = self.admin.table.row
         self.admin.table.removeRow(row)
 
+    def slot_admin_modal_btn_student_manage_insert_click(self) -> None:
+        """
+        管理员
+        学生管理添加按钮弹出的模态框中完成按钮的信号槽
+        """
+        data = [_input.text() for _input in self.modal.input_list]
+        # todo
+        sql = "INSERT INTO Student VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}')".format(*data)
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_modal_student_manage_insert_data)
+        self.thread_pool.start(thread)
+
     def slot_admin_table_btn_student_manage_modify_click(self) -> None:
         """
         管理员
@@ -684,22 +708,20 @@ class MainWindow(QWidget):
         self.modal.set_content(header, items)
         self.modal.set_title("学生管理")
         self.modal.input_at(0).setReadOnly(True)
-        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_student_manage_click)
+        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_student_manage_modify_click)
         self.modal.show()
 
-    def slot_admin_modal_btn_student_manage_click(self) -> None:
+    def slot_admin_modal_btn_student_manage_modify_click(self) -> None:
         """
         管理员
-        学生管理模态框中的完成按钮的信号槽
+        学生管理修改按钮弹出的模态框中的完成按钮的信号槽
         """
-        if not self.modal:
-            return
         data = [_input.text() for _input in self.modal.input_list]
         user_id = data.pop(0)
         data.append(user_id)
         sql = "UPDATE Student SET 姓名='{}',性别='{}',年龄='{}',专业名='{}',密码='{}',备注='{}' WHERE 学号='{}'".format(*data)
         thread = MsSQLThread(self.connection, sql)
-        thread.data_signal.connect(self.slot_admin_modal_student_manage_data)
+        thread.data_signal.connect(self.slot_admin_modal_student_manage_modify_data)
         self.thread_pool.start(thread)
 
     def slot_admin_modal_btn_course_manage_insert_click(self) -> None:
@@ -708,9 +730,6 @@ class MainWindow(QWidget):
         课程管理中点击添加按钮弹出的模态框中完成按钮的数据
         """
         data = [_input.text().strip() for _input in self.modal.input_list]
-        if not data[0]:
-            QMessageBox.critical(self, "错误", "课程号不能为空")
-            return
         sql = "INSERT INTO Course VALUES('{}', '{}')".format(*data[:2])
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_modal_course_manage_insert_data)
@@ -792,6 +811,24 @@ class MainWindow(QWidget):
             thread.data_signal.connect(self.slot_admin_table_course_manage_delete_data)
             self.thread_pool.start(thread)
 
+    def slot_admin_btn_student_manage_insert_click(self) -> None:
+        """
+        管理员
+        学生管理中添加按钮的信号槽
+        """
+        header = ["学号", "姓名", "性别", "年龄", "专业名", "密码", "备注"]
+        items = ["" for _ in range(len(header))]
+        item = self.admin.table.item(self.admin.table.rowCount() - 1, 0)
+        if item is not None:
+            item = str(int(item.text()) + 1)
+        items[0] = item or "200001"
+        self.modal = InputModal(self.width(), self.height(), parent=self)
+        self.modal.set_title("添加学生")
+        self.modal.set_content(header, items)
+        self.modal.input_at(0).setReadOnly(True)
+        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_student_manage_insert_click)
+        self.modal.show()
+
     def slot_admin_btn_course_manage_insert_click(self) -> None:
         """
         管理员
@@ -799,10 +836,15 @@ class MainWindow(QWidget):
         """
         header = ["课程号", "课程名", "选课人数"]
         items = ["" for _ in range(len(header))]
+        item = self.admin.table.item(self.admin.table.rowCount() - 1, 0)
+        if item is not None:
+            item = "%04d" % (int(item.text()) + 1)
+        items[0] = item or "0001"
         items[-1] = "0"
         self.modal = InputModal(self.width(), self.height(), parent=self)
         self.modal.set_title("添加课程")
         self.modal.set_content(header, items)
+        self.modal.input_at(0).setReadOnly(True)
         self.modal.input_at(-1).setReadOnly(True)
         self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_course_manage_insert_click)
         self.modal.show()
@@ -812,6 +854,14 @@ class MainWindow(QWidget):
         管理员
         点击学生管理按钮的信号槽
         """
+        # 绑定添加按钮的信号槽
+        try:
+            self.admin.btn_insert.clicked.disconnect()
+        except Exception:
+            pass
+        finally:
+            self.admin.btn_insert.clicked.connect(self.slot_admin_btn_student_manage_insert_click)
+        # 执行sql
         sql = "SELECT 学号,姓名,性别,年龄,专业名,密码,备注 FROM Student"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_student_manage_data)
