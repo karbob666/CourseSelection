@@ -266,6 +266,32 @@ class Table(QTableWidget):
             color: #2E2E2E;
             background: #D9EBF9;
         }
+        QScrollBar:vertical {
+            background: #FFF;
+            border: 0;
+            outline: none;
+            width: 12px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+        QScrollBar::handle:vertical {
+            background: #CFCFCF;
+            border-radius: 4px;
+            min-height: 12px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: #C1C1C1;
+        }
+        QScrollBar::add-line:vertical {
+            width: 0;
+            border: 0;
+        }
+        QScrollBar::sub-line:vertical {
+            width: 0;
+            border: 0;
+        }
         """)
         self.horizontalHeader().setStyleSheet("""
         QHeaderView::section {
