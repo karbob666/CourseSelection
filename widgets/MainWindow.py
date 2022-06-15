@@ -428,7 +428,7 @@ class MainWindow(QWidget):
             return
 
         header = list(data[0].keys())
-        header.extend([""] * 4)
+        header.extend([""] * 3)
         self.admin.table.clear()
         self.admin.table.setRowCount(len(data))
         self.admin.table.setColumnCount(len(header))
@@ -436,7 +436,7 @@ class MainWindow(QWidget):
         for row, student_info in enumerate(data):
             for column, item in enumerate(student_info.values()):
                 # 最后一列添加操作按钮
-                if column+1 >= self.admin.table.columnCount()-4:
+                if column+1 >= self.admin.table.columnCount()-3:
                     # 管理按钮
                     button = self.admin.get_btn_modify()
                     button.setObjectName(str(row))
@@ -448,17 +448,6 @@ class MainWindow(QWidget):
                     layout.addWidget(button)
                     widget.setLayout(layout)
                     self.admin.table.setCellWidget(row, column+1, widget)
-                    # 添加课程
-                    button = self.admin.get_btn_modify()
-                    button.setObjectName(str(row))
-                    button.setText("添加")
-                    button.clicked.connect(self.slot_admin_table_btn_course_manage_insert_click)
-                    widget = QWidget()
-                    layout = HLayout()
-                    layout.setAlignment(Qt.AlignCenter)
-                    layout.addWidget(button)
-                    widget.setLayout(layout)
-                    self.admin.table.setCellWidget(row, column+2, widget)
                     # 修改课程
                     button = self.admin.get_btn_modify()
                     button.setObjectName(str(row))
@@ -469,7 +458,7 @@ class MainWindow(QWidget):
                     layout.setAlignment(Qt.AlignCenter)
                     layout.addWidget(button)
                     widget.setLayout(layout)
-                    self.admin.table.setCellWidget(row, column+3, widget)
+                    self.admin.table.setCellWidget(row, column+2, widget)
                     # 删除课程
                     button = self.admin.get_btn_delete()
                     button.setObjectName(str(row))
@@ -479,7 +468,7 @@ class MainWindow(QWidget):
                     layout.setAlignment(Qt.AlignCenter)
                     layout.addWidget(button)
                     widget.setLayout(layout)
-                    self.admin.table.setCellWidget(row, column+4, widget)
+                    self.admin.table.setCellWidget(row, column+3, widget)
 
                 item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
                 self.admin.table.setItem(row, column, item)
@@ -770,24 +759,6 @@ class MainWindow(QWidget):
         thread.data_signal.connect(self.slot_admin_modal_course_manage_student_data)
         self.thread_pool.start(thread)
 
-    def slot_admin_table_btn_course_manage_insert_click(self) -> None:
-        """
-        管理员
-        课程管理表中添加按钮的信号槽
-        """
-        row = int(self.admin.sender().objectName())
-        self.admin.table.row = row
-        header = [self.admin.table.horizontalHeaderItem(i).text() for i in range(self.admin.table.columnCount())]
-        header = list(filter(lambda x: len(x) > 0, header))
-        items = ["" for _ in range(len(header))]
-        items[-1] = "0"
-        self.modal = InputModal(self.width(), self.height(), parent=self)
-        self.modal.set_title("添加课程")
-        self.modal.set_content(header, items)
-        self.modal.input_at(-1).setReadOnly(True)
-        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_course_manage_insert_click)
-        self.modal.show()
-
     def slot_admin_table_btn_course_manage_modify_click(self) -> None:
         """
         管理员
@@ -821,6 +792,21 @@ class MainWindow(QWidget):
             thread.data_signal.connect(self.slot_admin_table_course_manage_delete_data)
             self.thread_pool.start(thread)
 
+    def slot_admin_btn_course_manage_insert_click(self) -> None:
+        """
+        管理员
+        课程管理添加按钮的信号槽
+        """
+        header = ["课程号", "课程名", "选课人数"]
+        items = ["" for _ in range(len(header))]
+        items[-1] = "0"
+        self.modal = InputModal(self.width(), self.height(), parent=self)
+        self.modal.set_title("添加课程")
+        self.modal.set_content(header, items)
+        self.modal.input_at(-1).setReadOnly(True)
+        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_course_manage_insert_click)
+        self.modal.show()
+
     def slot_admin_btn_student_manage_click(self) -> None:
         """
         管理员
@@ -836,6 +822,14 @@ class MainWindow(QWidget):
         管理员
         点击课程管理按钮的信号槽
         """
+        # 绑定添加按钮的信号槽
+        try:
+            self.admin.btn_insert.clicked.disconnect()
+        except Exception:
+            pass
+        finally:
+            self.admin.btn_insert.clicked.connect(self.slot_admin_btn_course_manage_insert_click)
+        # 执行sql
         sql = "SELECT 课程号,课程名,选课人数 FROM Course_stu"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_course_manage_data)
