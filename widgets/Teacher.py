@@ -125,3 +125,27 @@ class Teacher(QWidget):
         }
         """)
         return button
+
+    @staticmethod
+    def get_btn_cancel() -> Button:
+        """
+        获取取消按钮
+        :return:
+        """
+        button = Button()
+        button.setFixedSize(80, 30)
+        button.setText("取消")
+        button.setStyleSheet("""
+        QWidget {
+            font-size: 18px;
+            border: 0;
+            outline: none;
+            color: #FFF;
+            border-radius: 3px;
+            background: rgba(255, 77, 79, 255);
+        }
+        QWidget:hover {
+            background: rgba(255, 77, 79, 200);
+        }
+        """)
+        return button
