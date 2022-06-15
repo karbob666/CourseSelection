@@ -20,6 +20,7 @@ class Admin(QWidget):
     btn_teacher_manage: Button
     btn_course_manage: Button
     btn_logout: Button
+    btn_insert: Button
     table: Table
 
     def __init__(self, *args, **kwargs) -> None:
@@ -88,10 +89,20 @@ class Admin(QWidget):
         self.btn_logout.setStyleSheet(btn_sidebar_stylesheet)
         self.btn_logout.setGraphicsEffect(Shadow(0, 0, 20))
 
+        # 添加按钮
+        self.btn_insert = Button(parent=self)
+        self.btn_insert.setText("添加")
+        self.btn_insert.setFixedSize(120, 40)
+        self.btn_insert.setGraphicsEffect(Shadow(3, 3, 12))
+        self.btn_insert.move(self.sidebar.width() + 20, 20)
+
         # 表格
         self.table = Table(parent=self)
-        self.table.move(self.sidebar.width() + 20, 20)
-        self.table.setMinimumSize(self.width() - self.sidebar.width() - 2 * 20, self.height() - 2 * 20)
+        self.table.move(self.sidebar.width() + 20, 20 + self.btn_insert.height() * 3 // 2)
+        self.table.setFixedSize(
+            self.width() - self.sidebar.width() - 2 * 20,
+            self.height() - 2 * 20 - self.btn_insert.height() * 3 // 2
+        )
 
     def init_layout(self) -> None:
         """
@@ -107,8 +118,12 @@ class Admin(QWidget):
         重绘大小事件
         """
         self.sidebar.resize(QSize(self.width() // 5, self.height()))
-        self.table.move(self.sidebar.width() + 20, 20)
-        self.table.setFixedSize(self.width() - self.sidebar.width() - 2 * 20, self.height() - 2 * 20)
+        self.btn_insert.move(self.sidebar.width() + 20, 20)
+        self.table.move(self.sidebar.width() + 20, 20 + self.btn_insert.height() * 3 // 2)
+        self.table.setFixedSize(
+            self.width() - self.sidebar.width() - 2 * 20,
+            self.height() - 2 * 20 - self.btn_insert.height() * 3 // 2
+        )
 
     @staticmethod
     def get_btn_modify() -> Button:
