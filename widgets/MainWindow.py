@@ -484,6 +484,67 @@ class MainWindow(QWidget):
                 item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
                 self.admin.table.setItem(row, column, item)
 
+    def slot_admin_teacher_manage_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
+        """
+        管理员
+        教师管理数据的信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        data = data * 10
+
+        # 添加数据到表格
+        header = list(data[0].keys())
+        header.extend(["" for _ in range(3)])
+        self.admin.table.clear()
+        self.admin.table.setRowCount(len(data))
+        self.admin.table.setColumnCount(len(header))
+        self.admin.table.setHorizontalHeaderLabels(header)
+        for row, student_info in enumerate(data):
+            for column, item in enumerate(student_info.values()):
+                # 最后一列添加操作按钮
+                if column+1 == self.admin.table.columnCount()-3:
+                    # 授课管理按钮
+                    button = self.admin.get_btn_modify()
+                    button.setObjectName(str(row))
+                    button.setText("管理")
+                    # todo
+                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    widget = QWidget()
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    self.admin.table.setCellWidget(row, column+1, widget)
+                    # 修改按钮
+                    button = self.admin.get_btn_modify()
+                    button.setObjectName(str(row))
+                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    widget = QWidget()
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    self.admin.table.setCellWidget(row, column+2, widget)
+                    # 删除按钮
+                    button = self.admin.get_btn_delete()
+                    button.setObjectName(str(row))
+                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    widget = QWidget()
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    self.admin.table.setCellWidget(row, column+3, widget)
+                item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
+                self.admin.table.setItem(row, column, item)
+
     def slot_admin_modal_student_manage_data(self, data: Optional[bool]) -> None:
         """
         管理员
@@ -780,6 +841,16 @@ class MainWindow(QWidget):
         thread.data_signal.connect(self.slot_admin_course_manage_data)
         self.thread_pool.start(thread)
 
+    def slot_admin_btn_teacher_manage_click(self) -> None:
+        """
+        管理员
+        点击教师管理按钮的信号槽
+        """
+        sql = "SELECT 工号,姓名,性别,密码,授课数目 FROM Teacher_info"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_teacher_manage_data)
+        self.thread_pool.start(thread)
+
     def slot_admin_btn_logout_click(self) -> None:
         """
         管理员
@@ -803,6 +874,7 @@ class MainWindow(QWidget):
         self.teacher.btn_logout.clicked.connect(self.slot_teacher_btn_logout_click)
         self.admin.btn_student_manage.clicked.connect(self.slot_admin_btn_student_manage_click)
         self.admin.btn_course_manage.clicked.connect(self.slot_admin_btn_course_manage_click)
+        self.admin.btn_teacher_manage.clicked.connect(self.slot_admin_btn_teacher_manage_click)
         self.admin.btn_logout.clicked.connect(self.slot_admin_btn_logout_click)
 
     def resizeEvent(self, event: QResizeEvent) -> None:
