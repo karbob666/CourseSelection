@@ -497,8 +497,6 @@ class MainWindow(QWidget):
             QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
             return
 
-        data = data * 10
-
         # 添加数据到表格
         header = list(data[0].keys())
         header.extend(["" for _ in range(3)])
@@ -525,7 +523,7 @@ class MainWindow(QWidget):
                     # 修改按钮
                     button = self.admin.get_btn_modify()
                     button.setObjectName(str(row))
-                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    button.clicked.connect(self.slot_admin_table_btn_teacher_manage_modify_click)
                     widget = QWidget()
                     layout = HLayout()
                     layout.setAlignment(Qt.AlignCenter)
@@ -565,7 +563,6 @@ class MainWindow(QWidget):
         if not data:
             QMessageBox.critical(self, "错误", "修改失败", QMessageBox.Ok)
             return
-
         # 修改表格中数据
         items = [_input.text() for _input in self.modal.input_list]
         row = self.admin.table.row
@@ -603,10 +600,14 @@ class MainWindow(QWidget):
         管理员
         """
         if not data:
-            QMessageBox.critical(self, "错误", "修改失败")
+            QMessageBox.critical(self, "错误", "修改失败", QMessageBox.Ok)
             return
-        # 刷新数据表
-        self.slot_admin_btn_course_manage_click()
+        # 修改表格中的数据
+        items = [_input.text() for _input in self.modal.input_list]
+        row = self.admin.table.row
+        for column, item in enumerate(items):
+            self.admin.table.setItem(row, column, QTableWidgetItem(item))
+        # 关闭模态框
         self.modal.close()
 
     def slot_admin_table_course_manage_student_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
@@ -706,6 +707,22 @@ class MainWindow(QWidget):
         row = self.admin.table.row
         self.admin.table.removeRow(row)
 
+    def slot_admin_modal_teacher_manage_modify_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        教师管理表中删除按钮弹出的模态框中完成按钮的信号槽
+        """
+        if not data:
+            QMessageBox.critical(self, "错误", "修改失败", QMessageBox.Ok)
+            return
+        # 修改表格中的数据
+        items = [_input.text() for _input in self.modal.input_list]
+        row = self.admin.table.row
+        for column, item in enumerate(items):
+            self.admin.table.setItem(row, column, QTableWidgetItem(item))
+        # 关闭模态框
+        self.modal.close()
+
     def slot_admin_modal_btn_student_manage_insert_click(self) -> None:
         """
         管理员
@@ -729,7 +746,7 @@ class MainWindow(QWidget):
         items = [self.admin.table.item(row, column).text() for column in range(self.admin.table.columnCount()-1)]
         self.modal = InputModal(self.width(), self.height(), parent=self)
         self.modal.set_content(header, items)
-        self.modal.set_title("学生管理")
+        self.modal.set_title("修改学生信息")
         self.modal.input_at(0).setReadOnly(True)
         self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_student_manage_modify_click)
         self.modal.show()
@@ -780,7 +797,8 @@ class MainWindow(QWidget):
         课程管理表中修改按钮弹出的模态框的完成按钮的信号槽
         """
         data = [_input.text() for _input in self.modal.input_list]
-        data = data[::-1][-2:]
+        user_id = data.pop(0)
+        data[-1] = user_id
         sql = "UPDATE Course SET 课程名='{}' WHERE 课程号='{}'".format(*data)
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_modal_course_manage_modify_data)
@@ -828,7 +846,7 @@ class MainWindow(QWidget):
         header = list(filter(lambda x: len(x) > 0, header))
         items = [self.admin.table.item(row, column).text() for column in range(len(header))]
         self.modal = InputModal(self.width(), self.height(), parent=self)
-        self.modal.set_title("修改课程")
+        self.modal.set_title("修改课程信息")
         self.modal.set_content(header, items)
         self.modal.input_at(0).setReadOnly(True)
         self.modal.input_at(-1).setReadOnly(True)
@@ -849,6 +867,38 @@ class MainWindow(QWidget):
             thread = MsSQLThread(self.connection, sql)
             thread.data_signal.connect(self.slot_admin_table_course_manage_delete_data)
             self.thread_pool.start(thread)
+
+    def slot_admin_modal_btn_teacher_manage_modify_click(self) -> None:
+        """
+        管理员
+        教师管理表中修改按钮弹出的模态框中完成按钮的信号槽
+        """
+        data = [_input.text() for _input in self.modal.input_list]
+        user_id = data.pop(0)
+        data[-1] = user_id
+        # todo
+        sql = "UPDATE Teacher SET 姓名='{}',性别='{}',密码='{}' WHERE 工号='{}'".format(*data)
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_modal_teacher_manage_modify_data)
+        self.thread_pool.start(thread)
+
+    def slot_admin_table_btn_teacher_manage_modify_click(self) -> None:
+        """
+        管理员
+        教师管理表中修改按钮的信号槽
+        """
+        row = int(self.admin.sender().objectName())
+        self.admin.table.row = row
+        header = [self.admin.table.horizontalHeaderItem(i).text() for i in range(self.admin.table.columnCount())]
+        header = list(filter(lambda x: len(x) > 0, header))
+        items = [self.admin.table.item(row, column).text() for column in range(len(header))]
+        self.modal = InputModal(self.width(), self.height(), parent=self)
+        self.modal.set_title("修改教师信息")
+        self.modal.set_content(header, items)
+        self.modal.input_at(0).setReadOnly(True)
+        self.modal.input_at(-1).setReadOnly(True)
+        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_teacher_manage_modify_click)
+        self.modal.show()
 
     def slot_admin_btn_student_manage_insert_click(self) -> None:
         """
