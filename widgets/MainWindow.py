@@ -393,7 +393,7 @@ class MainWindow(QWidget):
             return
 
         header = list(data[0].keys())
-        header.append("")
+        header.extend(["" for _ in range(2)])
         self.admin.table.clear()
         self.admin.table.setRowCount(len(data))
         self.admin.table.setColumnCount(len(header))
@@ -401,7 +401,8 @@ class MainWindow(QWidget):
         for row, student_info in enumerate(data):
             for column, item in enumerate(student_info.values()):
                 # 最后一列添加操作按钮
-                if column+2 == self.admin.table.columnCount():
+                if column+1 == self.admin.table.columnCount()-2:
+                    # 修改按钮
                     button = self.admin.get_btn_modify()
                     button.setObjectName(str(row))
                     button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
@@ -411,6 +412,16 @@ class MainWindow(QWidget):
                     layout.addWidget(button)
                     widget.setLayout(layout)
                     self.admin.table.setCellWidget(row, column+1, widget)
+                    # 删除按钮
+                    button = self.admin.get_btn_delete()
+                    button.setObjectName(str(row))
+                    button.clicked.connect(self.slot_admin_table_btn_student_manage_delete_click)
+                    widget = QWidget()
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    self.admin.table.setCellWidget(row, column+2, widget)
                 item = QTableWidgetItem(str(item).strip().encode("latin1").decode("gbk"))
                 self.admin.table.setItem(row, column, item)
 
@@ -562,6 +573,18 @@ class MainWindow(QWidget):
             self.admin.table.setItem(row, column, QTableWidgetItem(item))
         # 关闭模态框
         self.modal.close()
+
+    def slot_admin_table_student_manage_delete_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        学生管理表中删除按钮数据的信号槽
+        """
+        if not data:
+            QMessageBox.critical(self, "错误", "删除失败", QMessageBox.Ok)
+            return
+        # 删除表格数据
+        row = self.admin.table.row
+        self.admin.table.removeRow(row)
 
     def slot_admin_modal_course_manage_insert_data(self, data: Optional[bool]) -> None:
         """
@@ -723,6 +746,22 @@ class MainWindow(QWidget):
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_modal_student_manage_modify_data)
         self.thread_pool.start(thread)
+
+    def slot_admin_table_btn_student_manage_delete_click(self) -> None:
+        """
+        管理员
+        学生管理表中删除按钮的信号槽
+        """
+        choice = QMessageBox.warning(self, "警告", "你确定要删除吗？", QMessageBox.Ok | QMessageBox.Cancel)
+        if choice == QMessageBox.Ok:
+            row = int(self.admin.table.sender().objectName())
+            self.admin.table.row = row
+            user_id = self.admin.table.item(row, 0).text()
+            # todo
+            sql = f"DELETE FROM Student WHERE 学号='{user_id}'"
+            thread = MsSQLThread(self.connection, sql)
+            thread.data_signal.connect(self.slot_admin_table_student_manage_delete_data)
+            self.thread_pool.start(thread)
 
     def slot_admin_modal_btn_course_manage_insert_click(self) -> None:
         """
