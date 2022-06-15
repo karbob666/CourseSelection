@@ -589,7 +589,7 @@ class MainWindow(QWidget):
         课程管理表中添加按钮弹出的模态框完成按钮数据的信号槽
         """
         if not data:
-            QMessageBox.critical(self, "错误", "添加失败")
+            QMessageBox.critical(self, "错误", "添加失败", QMessageBox.Ok)
             return
         # 刷新数据表
         self.slot_admin_btn_course_manage_click()
@@ -706,6 +706,18 @@ class MainWindow(QWidget):
         # 删除表格数据
         row = self.admin.table.row
         self.admin.table.removeRow(row)
+
+    def slot_admin_modal_teacher_manage_insert_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        教师管理中添加按钮弹出的模态框中完成按钮的信号槽
+        """
+        if not data:
+            QMessageBox.critical(self, "错误", "添加失败", QMessageBox.Ok)
+            return
+        # 刷新数据表
+        self.slot_admin_btn_teacher_manage_click()
+        self.modal.close()
 
     def slot_admin_modal_teacher_manage_modify_data(self, data: Optional[bool]) -> None:
         """
@@ -880,6 +892,18 @@ class MainWindow(QWidget):
             thread.data_signal.connect(self.slot_admin_table_course_manage_delete_data)
             self.thread_pool.start(thread)
 
+    def slot_admin_modal_btn_teacher_manage_insert_click(self) -> None:
+        """
+        管理员
+        教师管理添加按钮弹出的模态框中完成按钮的信号槽
+        """
+        data = [_input.text() for _input in self.modal.input_list]
+        # todo
+        sql = "INSERT INTO Teacher VALUES('{}', '{}', '{}', '{}')".format(*data[:-1])
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_modal_teacher_manage_insert_data)
+        self.thread_pool.start(thread)
+
     def slot_admin_modal_btn_teacher_manage_modify_click(self) -> None:
         """
         管理员
@@ -966,6 +990,26 @@ class MainWindow(QWidget):
         self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_course_manage_insert_click)
         self.modal.show()
 
+    def slot_admin_btn_teacher_manage_insert_click(self) -> None:
+        """
+        管理员
+        教师管理添加按钮的信号槽
+        """
+        header = ["工号", "姓名", "性别", "密码", "授课数目"]
+        items = ["" for _ in range(len(header))]
+        item = self.admin.table.item(self.admin.table.rowCount() - 1, 0)
+        if item is not None:
+            item = "%06d" % (int(item.text()) + 1)
+        items[0] = item or "0000001"
+        items[-1] = "0"
+        self.modal = InputModal(self.width(), self.height(), parent=self)
+        self.modal.set_title("添加教师")
+        self.modal.set_content(header, items)
+        self.modal.input_at(0).setReadOnly(True)
+        self.modal.input_at(-1).setReadOnly(True)
+        self.modal.btn_complete.clicked.connect(self.slot_admin_modal_btn_teacher_manage_insert_click)
+        self.modal.show()
+
     def slot_admin_btn_student_manage_click(self) -> None:
         """
         管理员
@@ -1007,6 +1051,14 @@ class MainWindow(QWidget):
         管理员
         点击教师管理按钮的信号槽
         """
+        # 绑定添加按钮的信号槽
+        try:
+            self.admin.btn_insert.clicked.disconnect()
+        except Exception:
+            pass
+        finally:
+            self.admin.btn_insert.clicked.connect(self.slot_admin_btn_teacher_manage_insert_click)
+        # 执行sql
         sql = "SELECT 工号,姓名,性别,密码,授课数目 FROM Teacher_info"
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_teacher_manage_data)
