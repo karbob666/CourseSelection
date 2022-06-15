@@ -13,7 +13,7 @@ from widgets.Login import Login
 from widgets.Student import Student
 from widgets.Teacher import Teacher
 from widgets.Admin import Admin
-from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout, Modal, Table, InputModal
+from widgets.Base import MsConnectThread, MsSQLThread, ThreadPool, HLayout, Modal, Table, InputModal, Button
 from PyQt5.QtWidgets import QWidget, QMessageBox, QTableWidgetItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCloseEvent, QResizeEvent
@@ -512,8 +512,7 @@ class MainWindow(QWidget):
                     button = self.admin.get_btn_modify()
                     button.setObjectName(str(row))
                     button.setText("管理")
-                    # todo
-                    # button.clicked.connect(self.slot_admin_table_btn_student_manage_modify_click)
+                    button.clicked.connect(self.slot_admin_table_btn_teacher_manage_course_click)
                     widget = QWidget()
                     layout = HLayout()
                     layout.setAlignment(Qt.AlignCenter)
@@ -747,13 +746,130 @@ class MainWindow(QWidget):
         row = self.admin.table.row
         self.admin.table.removeRow(row)
 
+    def slot_admin_table_teacher_manage_course_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
+        """
+        管理员
+        教师管理表中管理按钮数据的信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        # 添加数据
+        table = Table()
+        header = data[0].keys()
+        table.setRowCount(len(data))
+        table.setColumnCount(len(header))
+        table.setHorizontalHeaderLabels(header)
+        for row, course_info in enumerate(data):
+            for column, item in enumerate(course_info.values()):
+                if column+1 == table.columnCount():
+                    # 表格内的按钮
+                    if str(item) == "0":
+                        button = self.teacher.get_btn_detail()
+                        button.setText("授课")
+                        button.clicked.connect(self.slot_admin_modal_btn_teacher_manage_course_teach_click)
+                    else:
+                        button = self.teacher.get_btn_cancel()
+                        button.clicked.connect(self.slot_admin_modal_btn_teacher_manage_course_cancel_click)
+                    button.setObjectName(str(row))
+                    # 空白widget, 使按钮在表格中居中
+                    widget = QWidget()
+                    widget.setObjectName(str(item))
+                    layout = HLayout()
+                    layout.setAlignment(Qt.AlignCenter)
+                    layout.addWidget(button)
+                    widget.setLayout(layout)
+                    # 表格最后一行添加按钮
+                    table.setCellWidget(row, column, widget)
+                    continue
+                item = QTableWidgetItem(str(item or "").strip().encode("latin1").decode("gbk"))
+                table.setItem(row, column, item)
+        self.modal = Modal(self.width(), self.height(), parent=self)
+        self.modal.set_title("教师授课管理")
+        self.modal.set_widget(table)
+        self.modal.show()
+        setattr(self.modal, "table", table)
+
+    def slot_admin_modal_teacher_manage_course_teach_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        教师管理表中管理按钮弹出的模态框中授课按钮数据的信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        # 获取按钮所在行和列
+        table: Table = getattr(self.modal, "table")
+        row = table.row
+        column = table.columnCount() - 1
+        # 关闭编辑模式
+        table.closePersistentEditor(table.item(row, 2))
+        table.closePersistentEditor(table.item(row, 3))
+        # 授课数目 +1
+        item = QTableWidgetItem(str(int(self.admin.table.item(self.admin.table.row, 4).text()) + 1))
+        self.admin.table.setItem(self.admin.table.row, 4, item)
+        # 切换按钮
+        button = self.teacher.get_btn_cancel()
+        button.setObjectName(str(row))
+        button.clicked.connect(self.slot_admin_modal_btn_teacher_manage_course_cancel_click)
+        widget = QWidget()
+        layout = HLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        layout.addWidget(button)
+        widget.setLayout(layout)
+        table.setCellWidget(row, column, widget)
+
+    def slot_admin_modal_teacher_manage_course_cancel_data(self, data: Optional[bool]) -> None:
+        """
+        管理员
+        教师管理表中管理按钮弹出的模态框中授课按钮数据的信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        # 获取按钮所在行和列
+        table: Table = getattr(self.modal, "table")
+        row = table.row
+        column = table.columnCount() - 1
+        # 授课数目 -1
+        item = QTableWidgetItem(str(int(self.admin.table.item(self.admin.table.row, 4).text()) - 1))
+        self.admin.table.setItem(self.admin.table.row, 4, item)
+        # 设置学时和学分为空
+        table.setItem(row, 2, QTableWidgetItem(str()))
+        table.setItem(row, 3, QTableWidgetItem(str()))
+        # 切换按钮
+        button = self.teacher.get_btn_detail()
+        button.setText("授课")
+        button.setObjectName(str(row))
+        button.clicked.connect(self.slot_admin_modal_btn_teacher_manage_course_teach_click)
+        widget = QWidget()
+        layout = HLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        layout.addWidget(button)
+        widget.setLayout(layout)
+        table.setCellWidget(row, column, widget)
+
     def slot_admin_modal_btn_student_manage_insert_click(self) -> None:
         """
         管理员
         学生管理添加按钮弹出的模态框中完成按钮的信号槽
         """
         data = [_input.text() for _input in self.modal.input_list]
-        # todo
         sql = "INSERT INTO Student VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}')".format(*data)
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_modal_student_manage_insert_data)
@@ -798,7 +914,6 @@ class MainWindow(QWidget):
             row = int(self.admin.table.sender().objectName())
             self.admin.table.row = row
             user_id = self.admin.table.item(row, 0).text()
-            # todo
             sql = f"DELETE FROM Student WHERE 学号='{user_id}'"
             thread = MsSQLThread(self.connection, sql)
             thread.data_signal.connect(self.slot_admin_table_student_manage_delete_data)
@@ -898,7 +1013,6 @@ class MainWindow(QWidget):
         教师管理添加按钮弹出的模态框中完成按钮的信号槽
         """
         data = [_input.text() for _input in self.modal.input_list]
-        # todo
         sql = "INSERT INTO Teacher VALUES('{}', '{}', '{}', '{}')".format(*data[:-1])
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_modal_teacher_manage_insert_data)
@@ -912,7 +1026,6 @@ class MainWindow(QWidget):
         data = [_input.text() for _input in self.modal.input_list]
         user_id = data.pop(0)
         data[-1] = user_id
-        # todo
         sql = "UPDATE Teacher SET 姓名='{}',性别='{}',密码='{}' WHERE 工号='{}'".format(*data)
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_admin_modal_teacher_manage_modify_data)
@@ -946,11 +1059,84 @@ class MainWindow(QWidget):
             row = int(self.admin.table.sender().objectName())
             self.admin.table.row = row
             user_id = self.admin.table.item(row, 0).text()
-            # todo
             sql = f"DELETE FROM Teacher WHERE 工号='{user_id}'"
             thread = MsSQLThread(self.connection, sql)
             thread.data_signal.connect(self.slot_admin_table_teacher_manage_delete_data)
             self.thread_pool.start(thread)
+
+    def slot_admin_table_btn_teacher_manage_course_click(self) -> None:
+        """
+        管理员
+        教师管理表中管理按钮的信号槽
+        主要用户给教师授课
+        """
+        row = int(self.admin.table.sender().objectName())
+        self.admin.table.row = row
+        user_id = self.admin.table.item(row, 0).text()
+        sql = f"SELECT 课程号,课程名,学时,学分,选择 AS 操作 FROM Course_teainfo('{user_id}')"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_table_teacher_manage_course_data)
+        self.thread_pool.start(thread)
+
+    def slot_admin_modal_btn_teacher_manage_course_teach_click(self) -> None:
+        """
+        管理员
+        教师管理表中管理按钮弹出的模态框中授课按钮的信号槽
+        """
+        # 获取行号
+        button = self.modal.sender()
+        row = int(button.objectName())
+        table: Table = getattr(self.modal, "table")
+        table.row = row
+        # 开启编辑模式
+        table.openPersistentEditor(table.item(row, 2))
+        table.openPersistentEditor(table.item(row, 3))
+        # 修改按钮的信号槽
+        button.setText("完成")
+        button.clicked.disconnect()
+        button.clicked.connect(self.slot_admin_modal_btn_teacher_manage_course_teach_next_click)
+
+    def slot_admin_modal_btn_teacher_manage_course_teach_next_click(self) -> None:
+        """
+        管理员
+        教师管理表中管理按钮弹出的模态框中授课按钮 -> 完成按钮的信号槽
+        """
+        # 获取学号 课程号 学时 学分
+        table: Table = getattr(self.modal, "table")
+        row = table.row
+        data = [
+            self.admin.table.item(self.admin.table.row, 0).text(),
+            table.item(row, 0).text(),
+            table.item(row, 2).text(),
+            table.item(row, 3).text(),
+        ]
+        try:
+            int(data[-1]) and int(data[-2])
+        except ValueError:
+            QMessageBox.critical(self, "错误", "学时或学分格式错误", QMessageBox.Ok)
+            return
+        # 执行sql
+        sql = "INSERT INTO TeaCourse VALUES('{}','{}','{}','{}')".format(*data)
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_modal_teacher_manage_course_teach_data)
+        self.thread_pool.start(thread)
+
+    def slot_admin_modal_btn_teacher_manage_course_cancel_click(self) -> None:
+        """
+        管理员
+        教师管理表中管理按钮弹出的模态框中取消授课按钮的信号槽
+        """
+        # 获取工号和课程号
+        row = int(self.modal.sender().objectName())
+        table: Table = getattr(self.modal, "table")
+        table.row = row
+        user_id = self.admin.table.item(self.admin.table.row, 0).text()
+        course_id = table.item(row, 0).text()
+        # 执行sql
+        sql = f"DELETE FROM TeaCourse WHERE 工号='{user_id}' AND 课程号='{course_id}'"
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_admin_modal_teacher_manage_course_cancel_data)
+        self.thread_pool.start(thread)
 
     def slot_admin_btn_student_manage_insert_click(self) -> None:
         """
