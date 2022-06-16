@@ -107,6 +107,10 @@ class MainWindow(QWidget):
         self.login.btn_login.set_loading(False)
 
     def slot_student_login_data(self, data: Optional[List[Dict[str, Any]]]) -> None:
+        """
+        学生系统
+        学生登录数据的信号槽
+        """
         if not data:
             QMessageBox.critical(self, "错误", "账号或密码错误", QMessageBox.Ok)
         else:
