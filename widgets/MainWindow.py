@@ -1389,5 +1389,8 @@ class MainWindow(QWidget):
         窗口关闭事件
         """
         # 关闭数据库连接
-        self.connection.close()
+        try:
+            self.connection.close()
+        except Exception:
+            pass
         return super().closeEvent(event)
