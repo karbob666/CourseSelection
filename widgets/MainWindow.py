@@ -978,7 +978,8 @@ class MainWindow(QWidget):
         row = int(self.admin.table.sender().objectName())
         self.admin.table.row = row
         header = [self.admin.table.horizontalHeaderItem(i).text() for i in range(self.admin.table.columnCount()-1)]
-        items = [self.admin.table.item(row, column).text() for column in range(self.admin.table.columnCount()-1)]
+        header = list(filter(lambda x: len(x) > 0, header))
+        items = [self.admin.table.item(row, column).text() for column in range(len(header))]
         self.modal = InputModal(self.width(), self.height(), parent=self)
         self.modal.set_content(header, items)
         self.modal.set_title("修改学生信息")
