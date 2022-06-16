@@ -279,7 +279,7 @@ class MainWindow(QWidget):
         thread.data_signal.connect(self.slot_student_course_manage_data)
         self.thread_pool.start(thread)
 
-    def slot_student_modal_user_info_click(self) -> None:
+    def slot_student_modal_btn_user_info_click(self) -> None:
         """
         学生系统
         个人信息按钮弹出的模态框中完成按钮的信号槽
@@ -304,7 +304,7 @@ class MainWindow(QWidget):
         self.modal.set_content(labels, inputs)
         self.modal.input_at(0).setReadOnly(True)
         self.modal.input_at(4).setReadOnly(True)
-        self.modal.btn_complete.clicked.connect(self.slot_student_modal_user_info_click)
+        self.modal.btn_complete.clicked.connect(self.slot_student_modal_btn_user_info_click)
         self.modal.show()
 
     def slot_student_btn_logout_click(self) -> None:
@@ -390,6 +390,24 @@ class MainWindow(QWidget):
         self.modal.set_widget(table)
         self.modal.show()
 
+    def slot_teacher_modal_user_info_data(self, data: Optional[bool]) -> None:
+        """
+        教师系统
+        点击个人信息弹出的模态框中完成按钮数据的信号槽
+        """
+        if data is None:
+            QMessageBox.critical(self, "错误", "获取数据失败", QMessageBox.Ok)
+            return
+
+        if not data:
+            QMessageBox.information(self, "提示", "没有查询到数据", QMessageBox.Ok)
+            return
+
+        # 修改个人数据
+        user_data = {k: v.text() for k, v in zip(self.teacher.user_data.keys(), self.modal.input_list)}
+        self.teacher.user_data = user_data
+        self.modal.close()
+
     def slot_teacher_btn_teach_info_click(self) -> None:
         """
         教师系统
@@ -413,6 +431,33 @@ class MainWindow(QWidget):
         thread = MsSQLThread(self.connection, sql)
         thread.data_signal.connect(self.slot_teacher_table_detail_data)
         self.thread_pool.start(thread)
+
+    def slot_teacher_modal_btn_user_info_click(self) -> None:
+        """
+        教师系统
+        点击个人信息弹出的模态框中完成按钮的信号槽
+        """
+        data = [_input.text() for _input in self.modal.input_list]
+        user_id = data.pop(0)
+        data.append(user_id)
+        sql = "UPDATE Teacher SET 姓名='{}',性别='{}',密码='{}' WHERE 工号='{}'".format(*data)
+        thread = MsSQLThread(self.connection, sql)
+        thread.data_signal.connect(self.slot_teacher_modal_user_info_data)
+        self.thread_pool.start(thread)
+
+    def slot_teacher_btn_user_info_click(self) -> None:
+        """
+        教师系统
+        点击个人信息按钮的信号槽
+        """
+        labels = list(self.teacher.user_data.keys())
+        inputs = list(self.teacher.user_data.values())
+        self.modal = InputModal(self.width(), self.height(), parent=self)
+        self.modal.set_title("个人信息管理")
+        self.modal.set_content(labels, inputs)
+        self.modal.input_at(0).setReadOnly(True)
+        self.modal.btn_complete.clicked.connect(self.slot_teacher_modal_btn_user_info_click)
+        self.modal.show()
 
     def slot_teacher_btn_logout_click(self) -> None:
         """
@@ -1317,6 +1362,7 @@ class MainWindow(QWidget):
         self.student.btn_user_info.clicked.connect(self.slot_student_btn_user_info_click)
         self.student.btn_logout.clicked.connect(self.slot_student_btn_logout_click)
         self.teacher.btn_teach_info.clicked.connect(self.slot_teacher_btn_teach_info_click)
+        self.teacher.btn_user_info.clicked.connect(self.slot_teacher_btn_user_info_click)
         self.teacher.btn_logout.clicked.connect(self.slot_teacher_btn_logout_click)
         self.admin.btn_student_manage.clicked.connect(self.slot_admin_btn_student_manage_click)
         self.admin.btn_course_manage.clicked.connect(self.slot_admin_btn_course_manage_click)
